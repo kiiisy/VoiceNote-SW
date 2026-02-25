@@ -1,0 +1,3 @@
+/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/zynq_fsbl/build/CMakeFiles/fsbl.elf.dir
+/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/zynq_fsbl/build/CMakeFiles/edit_cache.dir
+/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/zynq_fsbl/build/CMakeFiles/rebuild_cache.dir

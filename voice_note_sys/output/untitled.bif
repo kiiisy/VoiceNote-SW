@@ -1,0 +1,8 @@
+//arch = zynq; split = false; format = BIN
+the_ROM_image:
+{
+	[bootloader]/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/export/voice_note_platform/sw/boot/fsbl.elf
+	/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_sys/_ide/bitstream/design_1_wrapper.bit
+	/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_app_amp0/build/voice_note_app_amp0.elf
+	/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_app_amp1/build/voice_note_app_amp1.elf
+}

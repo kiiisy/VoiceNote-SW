@@ -1,0 +1,22 @@
+create libxil.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/xadcps/src/libxadcps.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/usbps/src/libusbps.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/uartps/src/libuartps.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/spips/src/libspips.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/sdps/src/libsdps.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/scuwdt/src/libscuwdt.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/scutimer/src/libscutimer.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/scugic/src/libscugic.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/qspips/src/libqspips.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/iic/src/libiic.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/i2stx/src/libi2stx.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/i2srx/src/libi2srx.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/gpiops/src/libgpiops.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/gpio/src/libgpio.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/dmaps/src/libdmaps.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/devcfg/src/libdevcfg.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/coresightps_dcc/src/libcoresightps_dcc.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/audio_formatter/src/libaudio_formatter.a
+addlib /home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/ps7_cortexa9_1/standalone_ps7_cortexa9_1/bsp/libsrc/build_configs/gen_bsp/libsrc/audio_clean_up/src/libaudio_clean_up.a
+save
+end

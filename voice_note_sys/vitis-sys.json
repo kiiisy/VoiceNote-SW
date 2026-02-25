@@ -1,0 +1,24 @@
+{
+  "modelVersion": "1.0",
+  "projectName": "voice_note_sys",
+  "platform": "/home/user/work/FY25/03_project/VoiceNote/sw/voice_note_platform/export/voice_note_platform/voice_note_platform.xpfm",
+  "externalComponentRefs": [
+    "voice_note_app_amp0",
+    "voice_note_app_amp1"
+  ],
+  "components": [],
+  "buildConfigurations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "supportedTargets": [
+        "HW_EMU",
+        "HW"
+      ]
+    }
+  ],
+  "activeBuildConfigId": "default",
+  "hostMode": "x86",
+  "isDirty": true,
+  "applicationFlow": "EMBEDDED"
+}
