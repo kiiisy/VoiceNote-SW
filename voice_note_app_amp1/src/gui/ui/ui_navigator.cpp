@@ -31,6 +31,12 @@ void UiNavigator::GoPlayOptions()
     lv_screen_load(store_.GetPlayOptScreen());
 }
 
+void UiNavigator::GoRecOptions()
+{
+    current_ = Screen::RecOptions;
+    lv_screen_load(store_.GetRecOptScreen());
+}
+
 void UiNavigator::GoPlay()
 {
     current_ = Screen::Play;
@@ -62,9 +68,13 @@ void UiNavigator::Back()
         case Screen::Play:
             transitions_.PlayToHome();
             return;
+        case Screen::RecOptions:
+            current_ = Screen::Recorder;
+            lv_screen_load(store_.GetRecScreen());
+            return;
         case Screen::PlayOptions:
-            // ホームからPlayOptionの遷移は起きえないためワーニングを出す
-            LOGE("Transitioning from the home screen to PlayOption.");
+            current_ = Screen::Play;
+            lv_screen_load(store_.GetPlayScreen());
             return;
     }
 }
@@ -73,6 +83,12 @@ void UiNavigator::SetPlayAgcRequesteCallback(PlayAgcRequesteFn fn, void *user)
 {
     on_playagc_      = fn;
     on_playagc_user_ = user;
+}
+
+void UiNavigator::SetRecOptionRequesteCallback(RecOptionRequesteFn fn, void *user)
+{
+    on_recopt_      = fn;
+    on_recopt_user_ = user;
 }
 
 void UiNavigator::SetPlayRequesteCallback(PlayRequesteFn fn, void *user)
@@ -108,6 +124,25 @@ void UiNavigator::NotifyPlayAgcDone(const play_agc_params_t &p)
 
     current_ = Screen::Play;
     lv_screen_load(store_.GetPlayScreen());
+}
+
+void UiNavigator::NotifyRecOptionDone(const rec_option_params_t &p)
+{
+    core1::gui::RecOptionRequest req{};
+    req.dc_enable        = p.dc_enable;
+    req.dc_fc_hz         = p.dc_fc_hz;
+    req.ng_enable        = p.ng_enable;
+    req.ng_th_open_x1000 = p.ng_th_open_x1000;
+    req.ng_th_close_x1000 = p.ng_th_close_x1000;
+    req.ng_attack_ms     = p.ng_attack_ms;
+    req.ng_release_ms    = p.ng_release_ms;
+
+    if (on_recopt_) {
+        on_recopt_(req, on_recopt_user_);
+    }
+
+    current_ = Screen::Recorder;
+    lv_screen_load(store_.GetRecScreen());
 }
 
 void UiNavigator::SetPlayFileList(const char *names[kMaxFiles], uint16_t count)

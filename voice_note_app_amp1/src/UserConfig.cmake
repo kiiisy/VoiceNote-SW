@@ -54,6 +54,7 @@ set(USER_INCLUDE_DIRECTORIES
 "gui/screens/play"
 "gui/screens/play_agc"
 "gui/screens/record"
+"gui/screens/record_option"
 "gui/screens/utility"
 )
 
@@ -71,6 +72,7 @@ set(USER_COMPILE_SOURCES
 "gui/screens/play/playlist_screen.cpp"
 "gui/screens/play_agc/play_agc_screen.cpp"
 "gui/screens/record/record_screen.cpp"
+"gui/screens/record_option/record_option_screen.cpp"
 "platform/display/panels/ili9341/ili9341_panel.cpp"
 "platform/display/panels/st7789/st7789_panel.cpp"
 "platform/touch/touch_ctrl.cpp"

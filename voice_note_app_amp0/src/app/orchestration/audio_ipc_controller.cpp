@@ -10,6 +10,7 @@
 #include <cstdio>
 
 // プロジェクトライブラリ
+#include "acu_core.h"
 #include "logger_core.h"
 #include "mapper/agc_config_mapper.h"
 #include "utility.h"
@@ -41,14 +42,35 @@ void AudioIpcController::SetHandlers()
     server_.on_set_agc = [&](const core::ipc::SetAgcPayload &p) -> int32_t {
         auto cfg = core0::app::ToAgcConfig(p);
 
-        // 即適用
         core0::platform::Agc::GetInstance().ApplyConfig(cfg);
-
-        // デバッグしたければ
-        // core0::platform::Agc::GetInstance().DumpStatus();
 
         LOGI("SetAgc applied: en=%u dist=%d min=%d max=%d k=%d", (unsigned)p.enable, (int)p.dist_mm,
              (int)p.min_gain_x100, (int)p.max_gain_x100, (int)p.speed_k);
+
+        return 0;
+    };
+
+    // ACU設定更新
+    server_.on_set_rec_option = [&](const core::ipc::RecOptionPayload &p) -> int32_t {
+        core0::platform::Acu::DcCutConfig dc{};
+        dc.fs_hz   = 48000.0f;
+        dc.fc_hz   = static_cast<float>(p.dc_fc_q16) / 65536.0f;
+        dc.dc_pass = p.dc_enable ? 0u : 1u;
+
+        core0::platform::Acu::NoiseGateConfig ng{};
+        ng.th_open   = static_cast<float>(p.ng_th_open_q15) / 32768.0f;
+        ng.th_close  = static_cast<float>(p.ng_th_close_q15) / 32768.0f;
+        ng.attack_s  = static_cast<float>(p.ng_attack_ms) / 1000.0f;
+        ng.release_s = static_cast<float>(p.ng_release_ms) / 1000.0f;
+        ng.ng_pass   = p.ng_enable ? 0u : 1u;
+
+        auto &acu = core0::platform::Acu::GetInstance();
+        acu.SetDcCut(dc);
+        acu.SetNoiseGate(ng);
+
+        LOGI("SetRecOption applied: dc_en=%u fc_q16=%ld ng_en=%u open_q15=%ld close_q15=%ld atk=%u rel=%u",
+             (unsigned)p.dc_enable, (long)p.dc_fc_q16, (unsigned)p.ng_enable, (long)p.ng_th_open_q15,
+             (long)p.ng_th_close_q15, (unsigned)p.ng_attack_ms, (unsigned)p.ng_release_ms);
 
         return 0;
     };

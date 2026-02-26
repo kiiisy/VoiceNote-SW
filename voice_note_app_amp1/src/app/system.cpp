@@ -62,6 +62,12 @@ void System::Init(const Deps &deps)
             self->OnPlayAgcRequeste(opt);
         },
         this);
+    gui_->SetRecOptionCallback(
+        [](const core1::gui::RecOptionRequest &opt, void *user) {
+            auto *self = static_cast<System *>(user);
+            self->OnRecOptionRequeste(opt);
+        },
+        this);
 
     gui_->SetPlayListRequesteCallback(
         [](const core1::gui::PlayListRequest &req, void *user) {
@@ -175,6 +181,19 @@ void System::OnPlayAgcRequeste(const gui::PlayAgcRequest &req)
     }
 
     ipc_->SetAgc(req.dist_link, req.dist_mm, req.min_gain_x100, req.max_gain_x100, (int16_t)req.speed_k);
+}
+
+void System::OnRecOptionRequeste(const gui::RecOptionRequest &req)
+{
+    if (!ipc_) {
+        return;
+    }
+
+    const int32_t dc_fc_q16       = static_cast<int32_t>(req.dc_fc_hz) << 16;
+    const int32_t ng_th_open_q15  = static_cast<int32_t>(req.ng_th_open_x1000) * 32768 / 1000;
+    const int32_t ng_th_close_q15 = static_cast<int32_t>(req.ng_th_close_x1000) * 32768 / 1000;
+    ipc_->SetRecOption(req.dc_enable, dc_fc_q16, req.ng_enable, ng_th_open_q15, ng_th_close_q15, req.ng_attack_ms,
+                       req.ng_release_ms);
 }
 
 void System::OnPlayListRequeste(const gui::PlayListRequest &req)

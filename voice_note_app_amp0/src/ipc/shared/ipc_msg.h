@@ -26,7 +26,7 @@ enum class CmdId : uint16_t
 
     ListDir = 20,  // SD取得
 
-    SetDcCut     = 30,  // DCカット設定
+    SetRecOption = 30,  // 録音オプション設定
     SetNoiseGate = 31,  // ノイズゲート設定
     SetAgc       = 32,  // 測距連動設定
     SetEffect    = 33,  // エフェクト設定
@@ -213,15 +213,20 @@ struct ListDirPayload
 static_assert(sizeof(ListDirPayload) <= kPayloadBytes);
 
 /**
- * @brief SetDcCutコマンド
+ * @brief SetRecOptionコマンド
  */
-struct SetDcCutPayload
+struct RecOptionPayload
 {
-    uint8_t enable;       // 有効無効
-    uint8_t reserved[3];  // 予約
-    int32_t fc_q16;       // カットオフ周波数
+    uint8_t dc_enable;      // DCカット有効無効
+    uint8_t ng_enable;      // ノイズゲート有効無効
+    uint8_t reserved0[2];   // 予約
+    int32_t dc_fc_q16;      // DCカットオフ周波数(Hz, Q16)
+    int32_t ng_th_open_q15; // ノイズゲート開閾値(Q15)
+    int32_t ng_th_close_q15;// ノイズゲート閉閾値(Q15)
+    uint16_t ng_attack_ms;  // アタック時間[ms]
+    uint16_t ng_release_ms; // リリース時間[ms]
 };
-static_assert(sizeof(SetDcCutPayload) <= kPayloadBytes);
+static_assert(sizeof(RecOptionPayload) <= kPayloadBytes);
 
 /**
  * @brief SetAgc（距離連動）コマンド

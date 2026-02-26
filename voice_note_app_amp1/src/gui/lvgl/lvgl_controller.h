@@ -55,6 +55,7 @@ public:
 
     // UI → System 通知
     void SetPlayAgcCallback(UiNavigator::PlayAgcRequesteFn fn, void *user);
+    void SetRecOptionCallback(UiNavigator::RecOptionRequesteFn fn, void *user);
     void SetPlayCallback(UiNavigator::PlayRequesteFn fn, void *user);
     void SetPlayListRequesteCallback(UiNavigator::PlayListRequesteFn fn, void *user);
 

@@ -13,6 +13,7 @@
 #include "play_agc.h"
 #include "playlist.h"
 #include "rec.h"
+#include "rec_option.h"
 
 namespace core1 {
 
@@ -53,6 +54,7 @@ public:
     void OnPlayRequeste(const gui::PlayRequest &req);
     void OnRecRequeste(const gui::RecRequest &req);
     void OnPlayAgcRequeste(const gui::PlayAgcRequest &req);
+    void OnRecOptionRequeste(const gui::RecOptionRequest &req);
     void OnPlayListRequeste(const gui::PlayListRequest &req);
 
 private:

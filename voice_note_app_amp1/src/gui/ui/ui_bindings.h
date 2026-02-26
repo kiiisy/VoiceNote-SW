@@ -26,10 +26,12 @@ private:
     static void OnHomePlay(void *user);
     static void OnBack(void *user);
     static void OnPlayMenu(void *user);
+    static void OnRecMenu(void *user);
     static void OnPlayMain(void *user);
     static void OnRecMain(void *user);
 
     static void OnPlayAgcDoneBridge(const play_agc_params_t *p, void *user);
+    static void OnRecOptionDoneBridge(const rec_option_params_t *p, void *user);
 
 private:
     ScreenStore &store_;

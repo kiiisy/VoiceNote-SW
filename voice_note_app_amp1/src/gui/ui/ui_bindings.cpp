@@ -27,6 +27,7 @@ void UiBindings::Init()
 
     // Recorder callbacks
     SetRecordBackCallback(&store_.GetRecUi(), &UiBindings::OnBack, this);
+    SetRecordMenuCallback(&store_.GetRecUi(), &UiBindings::OnRecMenu, this);
     SetRecordMainCallback(&store_.GetRecUi(), &UiBindings::OnRecMain, this);
 
     // Play callbacks
@@ -36,6 +37,7 @@ void UiBindings::Init()
 
     // PlayOptions callbacks
     SetPlayAgcCallback(&store_.GetPlayAgcUi(), &UiBindings::OnPlayAgcDoneBridge, this);
+    SetRecOptionCallback(&store_.GetRecOptionUi(), &UiBindings::OnRecOptionDoneBridge, this);
 
     // ホーム画面のスクロールをOFF
     lv_obj_clear_flag(store_.GetHomeScreen(), LV_OBJ_FLAG_SCROLLABLE);
@@ -67,6 +69,15 @@ void UiBindings::OnPlayMenu(void *user)
         return;
     }
     self->nav_.GoPlayOptions();
+}
+
+void UiBindings::OnRecMenu(void *user)
+{
+    auto *self = static_cast<UiBindings *>(user);
+    if (!self) {
+        return;
+    }
+    self->nav_.GoRecOptions();
 }
 
 void UiBindings::OnBack(void *user)
@@ -103,6 +114,15 @@ void UiBindings::OnPlayAgcDoneBridge(const play_agc_params_t *p, void *user)
         return;
     }
     self->nav_.NotifyPlayAgcDone(*p);
+}
+
+void UiBindings::OnRecOptionDoneBridge(const rec_option_params_t *p, void *user)
+{
+    auto *self = static_cast<UiBindings *>(user);
+    if (!self || !p) {
+        return;
+    }
+    self->nav_.NotifyRecOptionDone(*p);
 }
 
 }  // namespace gui

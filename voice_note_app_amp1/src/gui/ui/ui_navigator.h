@@ -11,6 +11,7 @@
 #include "play_agc.h"
 #include "playlist.h"
 #include "rec.h"
+#include "rec_option.h"
 #include "screen_store.h"
 #include "ui_bindings.h"
 #include "ui_transitions.h"
@@ -24,6 +25,7 @@ public:
     using PlayRequesteFn    = void (*)(const core1::gui::PlayRequest &req, void *user);
     using RecRequesteFn     = void (*)(const core1::gui::RecRequest &req, void *user);
     using PlayAgcRequesteFn = void (*)(const core1::gui::PlayAgcRequest &opt, void *user);
+    using RecOptionRequesteFn = void (*)(const core1::gui::RecOptionRequest &opt, void *user);
     using PlayListRequesteFn = void (*)(const core1::gui::PlayListRequest &req, void *user);
 
     static constexpr uint16_t kMaxFiles = 10;
@@ -32,6 +34,7 @@ public:
     {
         Home,
         Recorder,
+        RecOptions,
         Play,
         PlayOptions,
     };
@@ -43,6 +46,7 @@ public:
 
     void GoHome();
     void GoRec();
+    void GoRecOptions();
     void GoPlay();
     void GoPlayOptions();
     void Back();
@@ -55,6 +59,7 @@ public:
     void SetRecordUiState(uint8_t state);
 
     void SetPlayAgcRequesteCallback(PlayAgcRequesteFn fn, void *user);
+    void SetRecOptionRequesteCallback(RecOptionRequesteFn fn, void *user);
     void SetPlayRequesteCallback(PlayRequesteFn fn, void *user);
     void SetRecRequesteCallback(RecRequesteFn fn, void *user);
     void SetPlayListRequesteCallback(PlayListRequesteFn fn, void *user);
@@ -62,6 +67,7 @@ public:
     void NotifyPlayMain();
     void NotifyRecMain();
     void NotifyPlayAgcDone(const play_agc_params_t &p);
+    void NotifyRecOptionDone(const rec_option_params_t &p);
 
     void SetPlayFileList(const char *names[kMaxFiles], uint16_t count);
     void NotifyPlayFileSelected(uint16_t index);
@@ -80,6 +86,8 @@ private:
 
     PlayAgcRequesteFn on_playagc_{nullptr};
     void             *on_playagc_user_{nullptr};
+    RecOptionRequesteFn on_recopt_{nullptr};
+    void               *on_recopt_user_{nullptr};
 
     PlayRequesteFn on_playreq_{nullptr};
     void          *on_playreq_user_{nullptr};

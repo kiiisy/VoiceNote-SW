@@ -63,6 +63,11 @@ void LvglController::SetPlayAgcCallback(UiNavigator::PlayAgcRequesteFn fn, void 
     nav_.SetPlayAgcRequesteCallback(fn, user);
 }
 
+void LvglController::SetRecOptionCallback(UiNavigator::RecOptionRequesteFn fn, void *user)
+{
+    nav_.SetRecOptionRequesteCallback(fn, user);
+}
+
 /**
  * @brief 再生要求コールバック
  */
