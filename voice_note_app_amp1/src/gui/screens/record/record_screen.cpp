@@ -178,13 +178,17 @@ void CreateBackButton(lv_obj_t *root, record_ui_t *ui)
 void CreateMenuButton(lv_obj_t *root, record_ui_t *ui)
 {
     ui->btn_menu = lv_button_create(root);
-    ApplyTransparentButtonStyle(ui->btn_menu);
+    lv_obj_set_size(ui->btn_menu, 56, 56);
+    lv_obj_align(ui->btn_menu, LV_ALIGN_TOP_RIGHT, -10, 10);
+    ApplyCircleButtonStyle(ui->btn_menu, LV_COLOR_RGB_AS_BGR(0x1F1F27), LV_OPA_40);
+    lv_obj_add_event_cb(ui->btn_menu, OnMenu, LV_EVENT_PRESSED, ui);
 
-    lv_obj_set_size(ui->btn_menu, 52, 44);
-    lv_obj_align(ui->btn_menu, LV_ALIGN_TOP_RIGHT, -12, 10);
-    lv_obj_add_event_cb(ui->btn_menu, OnMenu, LV_EVENT_CLICKED, ui);
-
-    ui->label_menu = CreateCenteredLabel(ui->btn_menu, "≡", &lv_font_montserrat_28);
+#ifdef LV_SYMBOL_SETTINGS
+    ui->label_menu = CreateCenteredLabel(ui->btn_menu, LV_SYMBOL_SETTINGS, &lv_font_montserrat_28);
+#else
+    ui->label_menu = CreateCenteredLabel(ui->btn_menu, LV_SYMBOL_LIST, &lv_font_montserrat_28);
+#endif
+    lv_obj_move_foreground(ui->btn_menu);
 }
 
 /**

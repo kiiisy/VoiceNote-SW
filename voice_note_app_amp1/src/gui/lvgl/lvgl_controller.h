@@ -5,6 +5,7 @@
 #pragma once
 
 // 標準ライブラリ
+#include <cstddef>
 #include <cstdint>
 
 // LVGLライブラリ
@@ -13,6 +14,7 @@
 #include "lvgl.h"
 
 // プロジェクトライブラリ
+#include "display/display_spec.h"
 #include "gpio_ps.h"
 #include "play.h"
 #include "playlist.h"
@@ -34,8 +36,8 @@ class LvglController
 public:
     struct Config
     {
-        uint16_t hor = 320;
-        uint16_t ver = 240;
+        uint16_t hor = common::display::kWidth;
+        uint16_t ver = common::display::kHeight;
 
         bool     swapRgb565Bytes  = true;
         uint32_t flushChunkPixels = 512;
@@ -89,7 +91,8 @@ private:
     UiNavigator nav_{store_};
 
     // 描画バッファ
-    static constexpr size_t kBufBytesMax = 240u * 320u * 2u;
+    static constexpr size_t kBufBytesMax =
+        static_cast<size_t>(common::display::kHeight) * static_cast<size_t>(common::display::kWidth) * 2u;
     alignas(4) uint8_t drawbuf_[kBufBytesMax];
 
     static constexpr uint32_t kScratchBytes = 1024 * 2;

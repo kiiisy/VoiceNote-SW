@@ -2,8 +2,8 @@
 #include "ui_navigator.h"
 
 // 標準ライブラリ
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 // プロジェクトライブラリ
 #include "logger_core.h"
@@ -129,13 +129,13 @@ void UiNavigator::NotifyPlayAgcDone(const play_agc_params_t &p)
 void UiNavigator::NotifyRecOptionDone(const rec_option_params_t &p)
 {
     core1::gui::RecOptionRequest req{};
-    req.dc_enable        = p.dc_enable;
-    req.dc_fc_hz         = p.dc_fc_hz;
-    req.ng_enable        = p.ng_enable;
-    req.ng_th_open_x1000 = p.ng_th_open_x1000;
+    req.dc_enable         = p.dc_enable;
+    req.dc_fc_hz          = p.dc_fc_hz;
+    req.ng_enable         = p.ng_enable;
+    req.ng_th_open_x1000  = p.ng_th_open_x1000;
     req.ng_th_close_x1000 = p.ng_th_close_x1000;
-    req.ng_attack_ms     = p.ng_attack_ms;
-    req.ng_release_ms    = p.ng_release_ms;
+    req.ng_attack_ms      = p.ng_attack_ms;
+    req.ng_release_ms     = p.ng_release_ms;
 
     if (on_recopt_) {
         on_recopt_(req, on_recopt_user_);

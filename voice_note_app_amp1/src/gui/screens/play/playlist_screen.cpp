@@ -1,4 +1,5 @@
 #include "playlist_screen.h"
+#include "display/display_spec.h"
 #include "logger_core.h"
 #include "screen_utility.h"
 #include <cstring>
@@ -329,7 +330,7 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     lv_obj_set_size(ui->sheet, lv_pct(100), 190);
     ui->sheet_closed_y = lv_obj_get_content_height(parent);
     if (ui->sheet_closed_y <= kSheetOpenY) {
-        ui->sheet_closed_y = 240;
+        ui->sheet_closed_y = common::display::kHeight;
     }
     lv_obj_set_pos(ui->sheet, 0, ui->sheet_closed_y);
     lv_obj_set_style_radius(ui->sheet, 18, 0);
@@ -432,7 +433,7 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
         lv_label_set_long_mode(ui->labels[i], LV_LABEL_LONG_DOT);  // ★2行禁止の要
         lv_obj_align(ui->labels[i], LV_ALIGN_LEFT_MID, 12, 0);
 
-        static constexpr lv_coord_t kScreenW = 320;
+        static constexpr lv_coord_t kScreenW = static_cast<lv_coord_t>(common::display::kWidth);
         lv_obj_set_width(ui->labels[i], kScreenW - 12 - 4 - 6 - kRightW - 6);
 
         // 子を触ってもスクロール/イベントを親へ伝播

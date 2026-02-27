@@ -24,7 +24,7 @@ namespace core1 {
 namespace app {
 
 /**
- * @brief 依存の保存、周期制御の初期化、GUIからのコールバック接続を行う
+ * @brief 初期化処理
  */
 void System::Init(const Deps &deps)
 {
@@ -41,7 +41,15 @@ void System::Init(const Deps &deps)
     next_touch_ = prev_ms_;
     next_lv_    = prev_ms_;
 
-    // GUIからのイベントを受け取る
+    BindGuiCallbacks();
+    BindIpcCallbacks();
+}
+
+/**
+ * @brief GUIからのイベント受信用コールバックをバインドする
+ */
+void System::BindGuiCallbacks()
+{
     gui_->SetPlayCallback(
         [](const core1::gui::PlayRequest &req, void *user) {
             auto *self = static_cast<System *>(user);
@@ -62,6 +70,7 @@ void System::Init(const Deps &deps)
             self->OnPlayAgcRequeste(opt);
         },
         this);
+
     gui_->SetRecOptionCallback(
         [](const core1::gui::RecOptionRequest &opt, void *user) {
             auto *self = static_cast<System *>(user);
@@ -75,8 +84,13 @@ void System::Init(const Deps &deps)
             self->OnPlayListRequeste(req);
         },
         this);
+}
 
-    // IPCからのイベントを受け取る
+/**
+ * @brief IPCからのイベント受信用コールバックをバインドする
+ */
+void System::BindIpcCallbacks()
+{
     ipc_->on_playback_status = [&](const core::ipc::PlaybackStatusPayload &st) {
         gui_->SetPlaybackUiState(st.state);
         gui_->SetPlaybackProgress(st.position_ms, st.duration_ms);
@@ -216,7 +230,7 @@ void System::HandleEvent(Event event)
 {
     const auto t = media_fsm_.Dispatch(event);
 
-    // act1/act2 を順に実行（None は no-op）
+    // act1/act2を順に実行
     ExecuteAction(t.act1);
     ExecuteAction(t.act2);
 }
@@ -231,12 +245,11 @@ void System::ExecuteAction(ActionId action)
 
         // UI関連のアクション
         case ActionId::UiPlayShowPlayIcon:
-            // 再生アイコンはIPCのPlaybackStatus(state)のみで更新する。
-            // ここで先行反映すると、状態反映の往復で一瞬だけ戻ることがある。
+            // 再生アイコンはIPCのPlaybackStatus(state)のみで更新する
             return;
 
         case ActionId::UiPlayShowPauseIcon:
-            // 再生アイコンはIPCのPlaybackStatus(state)のみで更新する。
+            // 再生アイコンはIPCのPlaybackStatus(state)のみで更新する
             return;
 
         case ActionId::UiRecShowPlayIcon:

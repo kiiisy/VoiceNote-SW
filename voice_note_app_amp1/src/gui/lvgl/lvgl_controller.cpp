@@ -202,5 +202,6 @@ void LvglController::ReadTouch(lv_indev_t *, lv_indev_data_t *data)
     data->point.x = raw.x;
     data->point.y = raw.y;
 }
+
 }  // namespace gui
 }  // namespace core1

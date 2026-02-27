@@ -28,7 +28,7 @@ public:
     std::function<int32_t(const core::ipc::RecStartPayload &)>              on_rec_start;
     std::function<int32_t()>                                                on_rec_stop;
     std::function<int32_t(const core::ipc::ListDirPayload &, uint32_t seq)> on_list_dir;
-    std::function<int32_t(const core::ipc::SetDcCutPayload &)>              on_set_dc_cut;
+    std::function<int32_t(const core::ipc::RecOptionPayload &)>             on_set_rec_option;
     std::function<int32_t(const core::ipc::SetAgcPayload &)>                on_set_agc;
     std::function<int32_t()>                                                on_pause;
     std::function<int32_t()>                                                on_resume;

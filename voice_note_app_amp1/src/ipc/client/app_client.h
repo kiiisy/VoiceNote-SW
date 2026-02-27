@@ -25,7 +25,8 @@ public:
     uint32_t Pause();
     uint32_t Resume();
 
-    uint32_t SetDcCut(bool enable, int32_t fc_q16);
+    uint32_t SetRecOption(bool dc_enable, int32_t dc_fc_q16, bool ng_enable, int32_t ng_th_open_q15,
+                          int32_t ng_th_close_q15, uint16_t ng_attack_ms, uint16_t ng_release_ms);
     uint32_t SetAgc(bool enable, int16_t dist_mm, int16_t min_gain_x100, int16_t max_gain_x100, int16_t speed_k);
 
     void Poll();               // 1回

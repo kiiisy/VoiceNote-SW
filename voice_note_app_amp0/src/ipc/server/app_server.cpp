@@ -217,14 +217,15 @@ void AppServer::HandleCmd(const core::ipc::Msg &msg)
             break;
         }
 
-        case core::ipc::CmdId::SetDcCut: {
-            auto *p = core::ipc::AsPayload<core::ipc::SetDcCutPayload>(msg, (uint16_t)core::ipc::CmdId::SetDcCut);
+        case core::ipc::CmdId::SetRecOption: {
+            auto *p =
+                core::ipc::AsPayload<core::ipc::RecOptionPayload>(msg, (uint16_t)core::ipc::CmdId::SetRecOption);
             if (!p) {
                 SendError(cmd, msg.header.seq, kErrBadLen);
                 break;
             }
 
-            int32_t rc = on_set_dc_cut ? on_set_dc_cut(*p) : 0;
+            int32_t rc = on_set_rec_option ? on_set_rec_option(*p) : 0;
             if (rc < 0) {
                 SendError(cmd, msg.header.seq, 104, rc);
             }

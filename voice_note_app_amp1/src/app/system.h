@@ -58,6 +58,9 @@ public:
     void OnPlayListRequeste(const gui::PlayListRequest &req);
 
 private:
+    void BindGuiCallbacks();
+    void BindIpcCallbacks();
+
     void HandleEvent(Event event);
     void ExecuteAction(ActionId action);
 

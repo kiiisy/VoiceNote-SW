@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "display/display_spec.h"
+
 namespace core1 {
 namespace platform {
 
@@ -39,8 +41,8 @@ public:
     {
         uint8_t addr{kTouchI2cAddr7};
 
-        uint16_t width{320};   // 画面幅
-        uint16_t height{240};  // 画面高
+        uint16_t width{common::display::kWidth};    // 画面幅
+        uint16_t height{common::display::kHeight};  // 画面高
 
         bool swap_xy{true};    // X/Y入替
         bool invert_x{false};  // X反転

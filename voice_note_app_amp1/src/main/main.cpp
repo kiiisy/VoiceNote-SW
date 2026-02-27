@@ -1,6 +1,7 @@
 #include "amp_hw.h"
 #include "app_client.h"
 #include "common.h"
+#include "display/display_spec.h"
 #include "gic_core.h"
 #include "gpio_pl.h"
 #include "gpio_ps.h"
@@ -88,7 +89,10 @@ int main()
     // -------------------------
     // LVGL + Touch
     // -------------------------
-    core1::gui::LvglController lvgl({.hor = 320, .ver = 240, .swapRgb565Bytes = true, .flushChunkPixels = 512});
+    core1::gui::LvglController lvgl({.hor              = core1::common::display::kWidth,
+                                     .ver              = core1::common::display::kHeight,
+                                     .swapRgb565Bytes  = true,
+                                     .flushChunkPixels = 512});
     lvgl.Init(lcd_bus, panel);
     lvgl.SetRotation(LV_DISP_ROTATION_0);
 
@@ -99,8 +103,8 @@ int main()
     }
 
     core1::platform::TouchCtrl::Config tcfg{.addr     = core1::platform::kTouchI2cAddr7,
-                                            .width    = 320,
-                                            .height   = 240,
+                                            .width    = core1::common::display::kWidth,
+                                            .height   = core1::common::display::kHeight,
                                             .swap_xy  = true,
                                             .invert_x = false,
                                             .invert_y = true};

@@ -22,11 +22,11 @@ namespace gui {
 class UiNavigator
 {
 public:
-    using PlayRequesteFn    = void (*)(const core1::gui::PlayRequest &req, void *user);
-    using RecRequesteFn     = void (*)(const core1::gui::RecRequest &req, void *user);
-    using PlayAgcRequesteFn = void (*)(const core1::gui::PlayAgcRequest &opt, void *user);
+    using PlayRequesteFn      = void (*)(const core1::gui::PlayRequest &req, void *user);
+    using RecRequesteFn       = void (*)(const core1::gui::RecRequest &req, void *user);
+    using PlayAgcRequesteFn   = void (*)(const core1::gui::PlayAgcRequest &opt, void *user);
     using RecOptionRequesteFn = void (*)(const core1::gui::RecOptionRequest &opt, void *user);
-    using PlayListRequesteFn = void (*)(const core1::gui::PlayListRequest &req, void *user);
+    using PlayListRequesteFn  = void (*)(const core1::gui::PlayListRequest &req, void *user);
 
     static constexpr uint16_t kMaxFiles = 10;
 
@@ -84,8 +84,8 @@ private:
     UiTransitions transitions_;
     UiBindings    bindings_;
 
-    PlayAgcRequesteFn on_playagc_{nullptr};
-    void             *on_playagc_user_{nullptr};
+    PlayAgcRequesteFn   on_playagc_{nullptr};
+    void               *on_playagc_user_{nullptr};
     RecOptionRequesteFn on_recopt_{nullptr};
     void               *on_recopt_user_{nullptr};
 
@@ -98,9 +98,9 @@ private:
     PlayListRequesteFn on_playlistreq_{nullptr};
     void              *on_playlistreq_user_{nullptr};
 
-    uint16_t    current_play_index_{0};
-    uint16_t    file_count_{0};
-    char        file_names_[kMaxFiles][80]{};
+    uint16_t current_play_index_{0};
+    uint16_t file_count_{0};
+    char     file_names_[kMaxFiles][80]{};
 };
 
 }  // namespace gui
