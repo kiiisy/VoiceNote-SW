@@ -74,12 +74,18 @@ private:
 
     uint32_t                  lv_period_ms_{5};  // LVGL timer handlerの呼び出し周期（ms）
     uint32_t                  sleep_us_{1000};   // メインループsleep値（us）
-    static constexpr uint32_t kUiPlayDebounceMs = 180;
+    static constexpr uint32_t kUiPlayDebounceMs  = 180;
+    static constexpr uint32_t kUiRecDebounceMs   = 180;
+    static constexpr uint32_t kMaxDeltaMsPerLoop = 50;  // LVGLへ渡す1回あたりの最大経過時間[ms]
+    static constexpr uint32_t kIpcPollBatch      = 8;   // 1ループで処理するIPCイベント件数
+    static constexpr uint32_t kTouchPeriodMsHot  = 5;   // 押下中のタッチ追従周期[ms]
+    static constexpr uint32_t kTouchPeriodMsIdle = 15;  // 非押下時のタッチ確認周期[ms]
 
-    uint32_t prev_ms_{0};     // 前回ループのnow_ms
-    uint32_t next_touch_{0};  // 次回タッチ処理予定時刻（ms）
-    uint32_t next_lv_{0};     // 次回LVGL処理予定時刻（ms）
+    uint32_t prev_ms_{0};        // 前回ループのnow_ms
+    uint32_t next_touch_ms_{0};  // 次回タッチ処理予定時刻（ms）
+    uint32_t next_lvgl_ms_{0};   // 次回LVGL処理予定時刻（ms）
     uint32_t last_ui_play_req_ms_{0};
+    uint32_t last_ui_rec_req_ms_{0};
 
     gui::PlayRequest    last_play_req_{};
     bool                has_play_req_{false};

@@ -25,17 +25,17 @@ void UiBindings::Init()
     // ホームのコールバック登録
     SetHomeUiCallback(&store_.GetHomeUi(), &UiBindings::OnHomeRec, &UiBindings::OnHomePlay, this);
 
-    // Recorder callbacks
+    // RECのコールバック登録
     SetRecordBackCallback(&store_.GetRecUi(), &UiBindings::OnBack, this);
     SetRecordMenuCallback(&store_.GetRecUi(), &UiBindings::OnRecMenu, this);
     SetRecordMainCallback(&store_.GetRecUi(), &UiBindings::OnRecMain, this);
 
-    // Play callbacks
+    // Playのコールバック登録
     SetPlayMainCallback(&store_.GetPlayUi(), &UiBindings::OnPlayMain, this);
     SetPlayBackCallback(&store_.GetPlayUi(), &UiBindings::OnBack, this);
     SetPlayMenuCallback(&store_.GetPlayUi(), &UiBindings::OnPlayMenu, this);
 
-    // PlayOptions callbacks
+    // Optionsのコールバック登録
     SetPlayAgcCallback(&store_.GetPlayAgcUi(), &UiBindings::OnPlayAgcDoneBridge, this);
     SetRecOptionCallback(&store_.GetRecOptionUi(), &UiBindings::OnRecOptionDoneBridge, this);
 

@@ -33,7 +33,6 @@ private:
     static void OnPlayAgcDoneBridge(const play_agc_params_t *p, void *user);
     static void OnRecOptionDoneBridge(const rec_option_params_t *p, void *user);
 
-private:
     ScreenStore &store_;
     UiNavigator &nav_;
 };

@@ -34,6 +34,13 @@ struct TouchPoint
 class TouchCtrl
 {
 public:
+    enum class RunResult : uint8_t
+    {
+        NoWork,        // 読み取り不要/未実施
+        Updated,       // 読み取り成功（押下追従を含む）
+        NeedRearmIrq,  // IRQ起点の読み取りを完了し、IRQ再有効化が必要
+    };
+
     /**
      * @brief 動作設定
      */
@@ -52,7 +59,7 @@ public:
     explicit TouchCtrl(const Config &cfg) : cfg_(cfg) {}
 
     bool Init(I2cPlCore &i2c);
-    bool Run();
+    RunResult Run();
 
     void NotifyInterrupt() noexcept { pending_.store(true, std::memory_order_release); }
 

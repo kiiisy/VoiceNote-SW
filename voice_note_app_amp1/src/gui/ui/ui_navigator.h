@@ -78,29 +78,29 @@ public:
     ScreenStore &store() { return store_; }
 
 private:
-    ScreenStore &store_;
-    Screen       current_{Screen::Home};
+    ScreenStore &store_;                  // 画面インスタンス保管への参照
+    Screen       current_{Screen::Home};  // 現在表示中の画面種別
 
-    UiTransitions transitions_;
-    UiBindings    bindings_;
+    UiTransitions transitions_;  // 画面遷移の実処理
+    UiBindings    bindings_;     // 画面イベントのバインド管理
 
-    PlayAgcRequesteFn   on_playagc_{nullptr};
-    void               *on_playagc_user_{nullptr};
-    RecOptionRequesteFn on_recopt_{nullptr};
-    void               *on_recopt_user_{nullptr};
+    PlayAgcRequesteFn   on_playagc_{nullptr};       // AGC設定完了通知のコールバック
+    void               *on_playagc_user_{nullptr};  // AGC通知用ユーザデータ
+    RecOptionRequesteFn on_recopt_{nullptr};        // 録音オプション完了通知のコールバック
+    void               *on_recopt_user_{nullptr};   // 録音オプション通知用ユーザデータ
 
-    PlayRequesteFn on_playreq_{nullptr};
-    void          *on_playreq_user_{nullptr};
+    PlayRequesteFn on_playreq_{nullptr};       // 再生要求通知のコールバック
+    void          *on_playreq_user_{nullptr};  // 再生要求通知用ユーザデータ
 
-    RecRequesteFn on_recmain_{nullptr};
-    void         *on_recmain_user_{nullptr};
+    RecRequesteFn on_recmain_{nullptr};       // 録音要求通知のコールバック
+    void         *on_recmain_user_{nullptr};  // 録音要求通知用ユーザデータ
 
-    PlayListRequesteFn on_playlistreq_{nullptr};
-    void              *on_playlistreq_user_{nullptr};
+    PlayListRequesteFn on_playlistreq_{nullptr};       // 再生リスト要求通知のコールバック
+    void              *on_playlistreq_user_{nullptr};  // 再生リスト要求通知用ユーザデータ
 
-    uint16_t current_play_index_{0};
-    uint16_t file_count_{0};
-    char     file_names_[kMaxFiles][80]{};
+    uint16_t current_play_index_{0};        // 現在選択中の再生リストindex
+    uint16_t file_count_{0};                // 保持中のファイル数
+    char     file_names_[kMaxFiles][80]{};  // 再生リスト表示用ファイル名
 };
 
 }  // namespace gui

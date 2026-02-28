@@ -30,6 +30,7 @@ void LvglController::Init(platform::LcdBus &bus, platform::PanelInterface &panel
     bus_   = &bus;
     panel_ = &panel;
 
+    // LVGL本体を初期化する
     lv_init();
 
     disp_ = lv_display_create(cfg_.hor, cfg_.ver);
@@ -40,6 +41,7 @@ void LvglController::Init(platform::LcdBus &bus, platform::PanelInterface &panel
     lv_display_set_buffers(disp_, drawbuf_, nullptr, static_cast<uint32_t>(cfg_.hor) * cfg_.ver * 2,
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
 
+    // callback内からthisへ戻れるようにユーザデータを登録
     lv_display_set_user_data(disp_, this);
     lv_display_set_default(disp_);
 }
@@ -125,6 +127,7 @@ void LvglController::FlushDisplayCallback(lv_display_t *disp, const lv_area_t *a
 
 void LvglController::FlushDisplay(lv_display_t *, const lv_area_t *area, uint8_t *pix)
 {
+    // 先にパネル側の書き込み領域を確定してからピクセルを流す
     panel_->SetAddrWindow(*bus_, area->x1, area->y1, area->x2, area->y2);
 
     const uint32_t w        = area->x2 - area->x1 + 1;
@@ -132,7 +135,8 @@ void LvglController::FlushDisplay(lv_display_t *, const lv_area_t *area, uint8_t
     const uint32_t total_px = w * h;
 
     const uint32_t max_chunk_px = sizeof(scratch_) / 2;
-    const uint32_t chunk_px     = std::max<uint32_t>(16, std::min<uint32_t>(cfg_.flushChunkPixels, max_chunk_px));
+    // flushChunkPixelsは設定値。scratch上限を超えない安全値に丸める
+    const uint32_t chunk_px = std::max<uint32_t>(16, std::min<uint32_t>(cfg_.flushChunkPixels, max_chunk_px));
 
     const uint8_t *src  = pix;
     uint32_t       sent = 0;
@@ -141,6 +145,7 @@ void LvglController::FlushDisplay(lv_display_t *, const lv_area_t *area, uint8_t
         const uint32_t n = std::min(chunk_px, total_px - sent);
 
         if (cfg_.swapRgb565Bytes) {
+            // RGB565の上位/下位バイト順を入れ替えてから送信
             uint8_t *q = scratch_;
             for (uint32_t i = 0; i < n; ++i) {
                 q[0] = src[1];
@@ -157,6 +162,7 @@ void LvglController::FlushDisplay(lv_display_t *, const lv_area_t *area, uint8_t
         sent += n;
     }
 
+    // このflush分の転送完了をLVGLへ通知
     lv_disp_flush_ready(disp_);
 }
 
@@ -167,6 +173,7 @@ void LvglController::RegisterTouch(platform::TouchCtrl &touch)
 {
     touch_ = &touch;
 
+    // LVGL入力デバイスを作成し、TouchCtrlを読み出すcallbackを接続
     indev_ = lv_indev_create();
     lv_indev_set_type(indev_, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev_, &LvglController::ReadTouchCallback);
@@ -183,8 +190,10 @@ void LvglController::ReadTouchCallback(lv_indev_t *indev, lv_indev_data_t *data)
     }
 }
 
-void LvglController::ReadTouch(lv_indev_t *, lv_indev_data_t *data)
+void LvglController::ReadTouch(lv_indev_t *indev, lv_indev_data_t *data)
 {
+    (void)indev;
+
     data->continue_reading = false;
 
     if (!touch_) {
@@ -195,6 +204,7 @@ void LvglController::ReadTouch(lv_indev_t *, lv_indev_data_t *data)
     // TouchCtrl側でデバウンス済みの値をそのまま使う
     auto raw = touch_->GetLastPoint();
 
+    // 念のためLVGL表示範囲へクリップして安全側に寄せる
     raw.x = std::min<uint16_t>(raw.x, cfg_.hor - 1);
     raw.y = std::min<uint16_t>(raw.y, cfg_.ver - 1);
 

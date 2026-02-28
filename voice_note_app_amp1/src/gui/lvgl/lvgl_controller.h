@@ -50,7 +50,7 @@ public:
     void InitScreens();
 
     void TimerHandler() { lv_timer_handler(); }
-    void TiclInc(uint32_t tm) { lv_tick_inc(tm); }
+    void TiclInc(uint32_t time) { lv_tick_inc(time); }
 
     void          SetRotation(lv_display_rotation_t rot) { lv_display_set_rotation(disp_, rot); }
     lv_display_t *handle() const { return disp_; }
@@ -79,24 +79,24 @@ private:
     static void ReadTouchCallback(lv_indev_t *indev, lv_indev_data_t *data);
     void        ReadTouch(lv_indev_t *indev, lv_indev_data_t *data);
 
-    Config                    cfg_{};
-    platform::LcdBus         *bus_{nullptr};
-    platform::PanelInterface *panel_{nullptr};
-    lv_display_t             *disp_{nullptr};
+    Config                    cfg_{};           // LVGL表示設定
+    platform::LcdBus         *bus_{nullptr};    // LCDバスの参照
+    platform::PanelInterface *panel_{nullptr};  // パネル制御の参照
+    lv_display_t             *disp_{nullptr};   // LVGLディスプレイハンドル
 
-    lv_indev_t          *indev_{nullptr};
-    platform::TouchCtrl *touch_{nullptr};
+    lv_indev_t          *indev_{nullptr};  // LVGL入力デバイス
+    platform::TouchCtrl *touch_{nullptr};  // タッチ制御の参照
 
-    ScreenStore store_;
-    UiNavigator nav_{store_};
+    ScreenStore store_;        // 画面オブジェクト保管
+    UiNavigator nav_{store_};  // 画面遷移とUI通知制御
 
     // 描画バッファ
     static constexpr size_t kBufBytesMax =
         static_cast<size_t>(common::display::kHeight) * static_cast<size_t>(common::display::kWidth) * 2u;
-    alignas(4) uint8_t drawbuf_[kBufBytesMax];
+    alignas(4) uint8_t drawbuf_[kBufBytesMax];  // LVGL描画ワークバッファ
 
     static constexpr uint32_t kScratchBytes = 1024 * 2;
-    alignas(4) uint8_t scratch_[kScratchBytes];
+    alignas(4) uint8_t scratch_[kScratchBytes];  // flush時の変換用一時バッファ
 };
 
 }  // namespace gui

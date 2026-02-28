@@ -169,32 +169,41 @@ bool TouchCtrl::Init(I2cPlCore &i2c)
 /**
  * @brief タッチ更新処理
  *
- * @return 更新が行われた場合 true（読み取りを実施した）
+ * @return 実行結果（IRQ再有効化要否を含む）
  */
-bool TouchCtrl::Run()
+TouchCtrl::RunResult TouchCtrl::Run()
 {
+    // IRQ起点で呼ばれたかを保持（再有効化判定に使う）
+    const bool irq_pending = pending_.exchange(false, std::memory_order_acq_rel);
+
     // IRQが来ていたらここで受け取る
-    bool need = pending_.exchange(false, std::memory_order_acq_rel);
+    bool need = irq_pending;
 
     // 押してる最中はIRQなしでも追従のため読む
     if (!need && last_point_.pressed) {
         need = true;
     }
     if (!need) {
-        return false;
+        return RunResult::NoWork;
     }
 
     TouchPoint new_point{};
     if (!ReadTouchState(new_point)) {
         // 失敗時に再試行できるよう、次回で再度読み取り
-        pending_.store(true, std::memory_order_release);
-        return false;
+        if (irq_pending) {
+            pending_.store(true, std::memory_order_release);
+        }
+        return RunResult::NoWork;
     }
 
     MedianFilter3(&new_point);
     last_point_ = new_point;
 
-    return true;
+    if (irq_pending) {
+        return RunResult::NeedRearmIrq;
+    }
+
+    return RunResult::Updated;
 }
 
 /**

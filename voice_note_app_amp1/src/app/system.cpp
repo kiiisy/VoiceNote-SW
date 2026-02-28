@@ -37,9 +37,9 @@ void System::Init(const Deps &deps)
         LOGE("System deps invalid: ipc=%p gui=%p touch=%p", ipc_, gui_, touch_);
     }
 
-    prev_ms_    = GetTimeMs();
-    next_touch_ = prev_ms_;
-    next_lv_    = prev_ms_;
+    prev_ms_       = GetTimeMs();
+    next_touch_ms_ = prev_ms_;
+    next_lvgl_ms_  = prev_ms_;
 
     BindGuiCallbacks();
     BindIpcCallbacks();
@@ -160,6 +160,7 @@ void System::BindIpcCallbacks()
  */
 void System::OnPlayRequeste(const gui::PlayRequest &req)
 {
+    // 複数連続で飛んできた時のガード
     const uint32_t now = GetTimeMs();
     if ((now - last_ui_play_req_ms_) < kUiPlayDebounceMs) {
         LOGW("Ignore duplicated UiPlayPressed within debounce window");
@@ -177,6 +178,14 @@ void System::OnPlayRequeste(const gui::PlayRequest &req)
  */
 void System::OnRecRequeste(const gui::RecRequest &req)
 {
+    // 複数連続で飛んできた時のガード
+    const uint32_t now = GetTimeMs();
+    if ((now - last_ui_rec_req_ms_) < kUiRecDebounceMs) {
+        LOGW("Ignore duplicated UiRecPressed within debounce window");
+        return;
+    }
+    last_ui_rec_req_ms_ = now;
+
     last_rec_req_ = req;
     has_rec_req_  = true;
     HandleEvent(Event::UiRecPressed);
@@ -218,6 +227,7 @@ void System::OnPlayListRequeste(const gui::PlayListRequest &req)
 
     list_dir_count_    = 0;
     list_dir_inflight_ = true;
+
     for (uint16_t i = 0; i < kMaxPlayListFiles; ++i) {
         list_dir_names_[i][0]  = '\0';
         list_dir_name_ptrs_[i] = list_dir_names_[i];
@@ -315,39 +325,43 @@ void System::ExecuteAction(ActionId action)
 void System::Run()
 {
     while (1) {
-        const uint32_t now = GetTimeMs();
+        const uint32_t now_ms = GetTimeMs();
 
-        uint32_t dt = now - prev_ms_;
-        prev_ms_    = now;
+        uint32_t delta_ms = now_ms - prev_ms_;
+        prev_ms_          = now_ms;
 
-        if (dt > 50)
-            dt = 50;
-
-        if (dt) {
-            gui_->TiclInc(dt);
+        // 何かの影響でループが詰まっても、LVGLへ一気に大きいtickを渡さない
+        if (delta_ms > kMaxDeltaMsPerLoop) {
+            delta_ms = kMaxDeltaMsPerLoop;
         }
 
-        // ポーリング
-        ipc_->PollN(8);
-
-        // タッチ読み取り
-        const uint32_t touch_period = touch_->IsPressed() ? 5u : 15u;
-        if ((int32_t)(now - next_touch_) >= 0) {
-            next_touch_ += touch_period;
-            touch_->Run();
+        // LVGLの内部時刻を進める
+        if (delta_ms) {
+            gui_->TiclInc(delta_ms);
         }
 
-        // ここで持ちたくない
-        if (gpio_pl_) {
-            gpio_pl_->EnableIrqLight();
+        // IPCイベントを捌く
+        ipc_->PollN(kIpcPollBatch);
+
+        // タッチ処理
+        if ((int32_t)(now_ms - next_touch_ms_) >= 0) {
+            const uint32_t touch_period_ms = touch_->IsPressed() ? kTouchPeriodMsHot : kTouchPeriodMsIdle;
+            next_touch_ms_ += touch_period_ms;
+
+            // タッチ状態を更新
+            const auto result = touch_->Run();
+            if (result == platform::TouchCtrl::RunResult::NeedRearmIrq && gpio_pl_) {
+                gpio_pl_->ReenableIrq();
+            }
         }
 
-        // LVGL
-        if ((int32_t)(now - next_lv_) >= 0) {
-            next_lv_ += lv_period_ms_;
+        // LVGLハンドラ実行（描画/入力イベントの処理を進める）
+        if ((int32_t)(now_ms - next_lvgl_ms_) >= 0) {
+            next_lvgl_ms_ += lv_period_ms_;
             gui_->TimerHandler();
         }
 
+        // CPU占有を避けるため、短時間sleepして次ループへ
         usleep(sleep_us_);
     }
 }

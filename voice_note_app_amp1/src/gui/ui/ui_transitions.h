@@ -33,7 +33,6 @@ private:
     static void OnHomeToPlayAnimDone(lv_anim_t *animation);
     static void OnHomeToRecAnimDone(lv_anim_t *animation);
 
-private:
     struct HomeToRecAnimCtx
     {
         UiTransitions *self{};
@@ -55,7 +54,6 @@ private:
         lv_obj_t      *ov_label{};
     };
 
-private:
     ScreenStore &store_;
     UiNavigator &nav_;
 };

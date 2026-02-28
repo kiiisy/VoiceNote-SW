@@ -19,6 +19,7 @@ namespace gui {
 
 void UiTransitions::OnBackToHomeFromPlayAnimDone(lv_anim_t *animation)
 {
+    // yアニメ完了時にまとめて後始末する（overlay破棄と状態復帰）
     auto *ctx = (BackRecCtx *)animation->user_data;
     if (!ctx || !ctx->self) {
         return;
@@ -41,6 +42,7 @@ void UiTransitions::OnBackToHomeFromPlayAnimDone(lv_anim_t *animation)
 
 void UiTransitions::OnBackToHomeFromRecAnimDone(lv_anim_t *animation)
 {
+    // yアニメ完了時にまとめて後始末する（overlay破棄と状態復帰）
     auto *ctx = (BackRecCtx *)animation->user_data;
     if (!ctx || !ctx->self) {
         return;
@@ -63,6 +65,7 @@ void UiTransitions::OnBackToHomeFromRecAnimDone(lv_anim_t *animation)
 
 void UiTransitions::OnHomeToPlayAnimDone(lv_anim_t *animation)
 {
+    // Home→Play演出の終了処理（ダミー削除と現在画面更新）
     auto *ctx = (HomeToPlayAnimCtx *)animation->user_data;
     if (!ctx || !ctx->self) {
         return;
@@ -85,6 +88,7 @@ void UiTransitions::OnHomeToPlayAnimDone(lv_anim_t *animation)
 
 void UiTransitions::OnHomeToRecAnimDone(lv_anim_t *animation)
 {
+    // Home→Rec演出の終了処理（ダミー削除と現在画面更新）
     auto *ctx = (HomeToRecAnimCtx *)animation->user_data;
     if (!ctx || !ctx->self) {
         return;
@@ -107,10 +111,12 @@ void UiTransitions::OnHomeToRecAnimDone(lv_anim_t *animation)
 
 void UiTransitions::HomeToRec()
 {
+    // 見た目のつなぎ込み用に「本物REC」と「ダミーREC」を入れ替えて演出する。文字の話ね。
+
     // 録音画面の本物RECは一旦隠す
     lv_obj_add_flag(store_.GetRecUi().label_title, LV_OBJ_FLAG_HIDDEN);
 
-    // ホームの紫円の位置・サイズ
+    // ホームの紫円の位置/サイズ
     lv_area_t a_c;
     lv_obj_get_coords(store_.GetHomeUi().btn_rec, &a_c);
     lv_coord_t cx = a_c.x1;
@@ -192,13 +198,15 @@ void UiTransitions::HomeToRec()
     lv_anim_set_ready_cb(&ay, OnHomeToRecAnimDone);
     lv_anim_start(&ay);
 
-    // ホーム本物を戻す
+    // 本物は次回の描画/復帰に備えてこの時点で戻しておく（表示は画面遷移側で管理）
     lv_obj_clear_flag(store_.GetHomeUi().btn_rec, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(store_.GetHomeUi().label_rec, LV_OBJ_FLAG_HIDDEN);
 }
 
 void UiTransitions::HomeToPlay()
 {
+    // 見た目のつなぎ込み用に「本物PLAY」と「ダミーPLAY」を入れ替えて演出する。文字の話ね。
+
     // 再生画面側の本物PLAYは一旦隠す
     lv_obj_add_flag(store_.GetPlayUi().label_title, LV_OBJ_FLAG_HIDDEN);
 
@@ -281,13 +289,15 @@ void UiTransitions::HomeToPlay()
     lv_anim_set_ready_cb(&ay, OnHomeToPlayAnimDone);
     lv_anim_start(&ay);
 
-    // ホーム復帰用に戻す
+    // 本物は次回の描画/復帰に備えてこの時点で戻しておく（表示は画面遷移側で管理）
     lv_obj_clear_flag(store_.GetHomeUi().btn_play, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(store_.GetHomeUi().label_play, LV_OBJ_FLAG_HIDDEN);
 }
 
 void UiTransitions::RecToHome()
 {
+    // Rec→Homeは「REC文字だけ」をoverlayで移動して、画面本体はload_animで切り替える
+
     // 開始点（録音画面の左上REC文字）: グローバル座標
     lv_area_t src_t;
     lv_obj_get_coords(store_.GetRecUi().label_title, &src_t);
@@ -337,6 +347,7 @@ void UiTransitions::RecToHome()
     lv_anim_set_path_cb(&ax, lv_anim_path_ease_out);
     lv_anim_start(&ax);
 
+    // 完了callbackでoverlayを破棄するため、コンテキストを渡す
     auto *ctx = new BackRecCtx{this, nullptr, ov};
 
     lv_anim_init(&ay);
@@ -352,6 +363,8 @@ void UiTransitions::RecToHome()
 
 void UiTransitions::PlayToHome()
 {
+    // Play→Homeは「PLAY文字だけ」をoverlayで移動して、画面本体はload_animで切り替える
+
     // 開始点（再生画面の右上 PLAY 文字）: グローバル座標
     lv_area_t src_t;
     lv_obj_get_coords(store_.GetPlayUi().label_title, &src_t);
@@ -402,6 +415,7 @@ void UiTransitions::PlayToHome()
     lv_anim_set_path_cb(&ax, lv_anim_path_ease_out);
     lv_anim_start(&ax);
 
+    // 完了callbackでoverlayを破棄するため、コンテキストを渡す
     auto *ctx = new BackRecCtx{this, nullptr, ov};
 
     lv_anim_init(&ay);

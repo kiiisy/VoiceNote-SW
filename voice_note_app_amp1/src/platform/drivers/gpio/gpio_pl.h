@@ -63,7 +63,7 @@ public:
 
     void MaskIrq() { XGpio_InterruptDisable(&inst_, cfg_.ch_0); }
     void UnmaskIrq() { XGpio_InterruptEnable(&inst_, cfg_.ch_0); }
-    void EnableIrqLight();
+    void ReenableIrq();
 
 private:
     const uint32_t in_setting_  = 0xFFFFFFFF;

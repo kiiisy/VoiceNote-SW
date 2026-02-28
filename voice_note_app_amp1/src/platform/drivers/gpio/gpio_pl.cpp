@@ -146,9 +146,9 @@ bool GpioPl::EnableIrq()
 }
 
 /**
- * @brief 割り込み有効化
+ * @brief GPIO割り込みを再有効化する
  */
-void GpioPl::EnableIrqLight()
+void GpioPl::ReenableIrq()
 {
     XGpio_InterruptEnable(&inst_, cfg_.ch_0);
     XGpio_InterruptGlobalEnable(&inst_);
