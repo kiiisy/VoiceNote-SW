@@ -154,7 +154,7 @@ void RecordController::Process()
  * @retval true イベント取得成功
  * @retval false イベントなし、またはoutがnull
  */
-bool RecordController::GetNextEvent(EventInfo *out)
+bool RecordController::PopEvent(EventInfo *out)
 {
     if (!out) {
         return false;

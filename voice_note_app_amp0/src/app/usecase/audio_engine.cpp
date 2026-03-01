@@ -34,9 +34,6 @@ bool AudioEngine::Init()
 {
     LOG_SCOPE();
 
-    mode_  = Mode::kIdle;
-    state_ = State::kIdle;
-
     notification_queue_.Reset();
     fsm_        = AudioFsm{};
     fsm_params_ = {};
@@ -80,10 +77,6 @@ void AudioEngine::Deinit()
     // pools
     tx_pool_.Deinit();
     rx_pool_.Deinit();
-
-    // state
-    mode_  = Mode::kIdle;
-    state_ = State::kIdle;
 
     notification_queue_.Reset();
     event_pending_ = false;
@@ -200,8 +193,6 @@ void AudioEngine::Task()
             break;
     }
 
-    // 表示更新
-    ApplyPublicState();
 }
 
 /**
@@ -214,7 +205,7 @@ void AudioEngine::ProcessPlayback()
     }
 
     PlaybackController::EventInfo pev{};
-    while (pb_ctrl_.GetNextEvent(&pev)) {
+    while (pb_ctrl_.PopEvent(&pev)) {
         switch (pev.type) {
             case PlaybackController::Event::kStarted:
                 PublishNotification(AudioNotification::Type::kPlaybackStarted, static_cast<int32_t>(Error::kNone));
@@ -251,7 +242,7 @@ void AudioEngine::ProcessRecord()
     }
 
     RecordController::EventInfo rev{};
-    while (rec_ctrl_.GetNextEvent(&rev)) {
+    while (rec_ctrl_.PopEvent(&rev)) {
         switch (rev.type) {
             case RecordController::Event::kStarted:
                 PublishNotification(AudioNotification::Type::kRecordStarted, static_cast<int32_t>(Error::kNone));
@@ -268,35 +259,6 @@ void AudioEngine::ProcessRecord()
             default:
                 break;
         }
-    }
-}
-
-/**
- * @brief FSM状態を公開状態へ反映する
- */
-void AudioEngine::ApplyPublicState()
-{
-    switch (fsm_.GetState()) {
-        case AudioState::Idle:
-            mode_  = Mode::kIdle;
-            state_ = State::kIdle;
-            break;
-        case AudioState::Playing:
-            mode_  = Mode::kPlayback;
-            state_ = State::kPbRunning;
-            break;
-        case AudioState::Paused:
-            mode_  = Mode::kPlayback;
-            state_ = State::kPbPaused;
-            break;
-        case AudioState::Recording:
-            mode_  = Mode::kRecord;
-            state_ = State::kRecRunning;
-            break;
-        default:
-            mode_  = Mode::kIdle;
-            state_ = State::kIdle;
-            break;
     }
 }
 

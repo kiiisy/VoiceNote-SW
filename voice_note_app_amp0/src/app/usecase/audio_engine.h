@@ -54,36 +54,10 @@ public:
 private:
     void RunFsm();
     void ExecuteAction(AudioAction action);
-    void ApplyPublicState();
     void ProcessRecord();
     void ProcessPlayback();
     void PushFsmEvent(AudioFsmEvent event);
     void PublishNotification(AudioNotification::Type type, int32_t err);
-
-    // 内部管理用
-    enum class Mode
-    {
-        kIdle,
-        kPlayback,
-        kRecord
-    };
-
-    enum class State : uint8_t
-    {
-        kIdle = 0,
-
-        // Playback
-        kPbPrepared,
-        kPbRunning,
-        kPbPaused,
-        kPbDraining,
-        kPbStopping,
-
-        // Record
-        kRecPrepared,
-        kRecRunning,
-        kRecStopping,
-    };
 
     enum class Error : int32_t
     {
@@ -91,8 +65,6 @@ private:
         kPlaybackStartFailed = -100,
         kRecordStartFailed   = -200,
     };
-    Mode  mode_  = Mode::kIdle;
-    State state_ = State::kIdle;
 
     uintptr_t ddr_base_addr_ = kDmaBufBasePhys;
 

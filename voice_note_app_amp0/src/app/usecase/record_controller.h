@@ -60,7 +60,7 @@ public:
     bool Start(const char *wav_path, uint32_t sample_rate_hz, uint16_t bits, uint16_t ch);
     void Process();
     bool IsActive() const { return state_ != State::kIdle; }
-    bool GetNextEvent(EventInfo *out);
+    bool PopEvent(EventInfo *out);
     bool GetStatus(core::ipc::RecordStatusPayload *out) const;
     void RequestStop() { stop_req_ = true; };
 
@@ -71,7 +71,6 @@ private:
     void     ExecuteStopping();
     uint32_t CopySideBufferToPool(module::AudioFormatterRx::BufferSide which);
 
-private:
     // 停止要求が来なければこの秒数で自動停止する
     static constexpr uint16_t kMaxRecordSeconds = 30;
 

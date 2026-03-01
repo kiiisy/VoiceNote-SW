@@ -146,7 +146,7 @@ void PlaybackController::Process()
     }
 }
 
-bool PlaybackController::GetNextEvent(EventInfo *event)
+bool PlaybackController::PopEvent(EventInfo *event)
 {
     if (!event) {
         return false;

@@ -63,7 +63,7 @@ public:
     bool Start(const char *wav_path);
     void Process();
     bool IsActive() const { return state_ != State::kIdle; }
-    bool GetNextEvent(EventInfo *event);
+    bool PopEvent(EventInfo *event);
     bool GetStatus(core::ipc::PlaybackStatusPayload *status) const;
     void RequestPause() { pause_req_ = true; };
     void RequestResume() { resume_req_ = true; };
@@ -77,7 +77,6 @@ private:
     void FillSide(module::AudioFormatterTx::BufferSide which);
     void Finish(Event event, int32_t err = 0);
 
-private:
     module::AudioFormatterTx *tx_{nullptr};
     module::AudioBppPool     *tx_pool_{nullptr};
     module::SdBppFeeder       feeder_;
