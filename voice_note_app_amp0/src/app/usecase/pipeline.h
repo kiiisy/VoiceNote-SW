@@ -1,3 +1,7 @@
+/**
+ * @file pipeline.h
+ * @brief Pipelineの定義
+ */
 #pragma once
 
 // 標準ライブラリ
@@ -6,13 +10,14 @@
 namespace core0 {
 
 namespace module {
-class AudioCodec;
 class AudioFormatterTx;
 class AudioFormatterRx;
 }  // namespace module
 
 namespace platform {
 class Acu;
+class I2sTx;
+class I2sRx;
 }  // namespace platform
 
 namespace app {
@@ -23,7 +28,8 @@ namespace app {
 class Pipeline final
 {
 public:
-    bool Init(uintptr_t base_addr, module::AudioCodec &codec, platform::Acu &acu, uintptr_t acu_baseaddr);
+    bool Init(uintptr_t base_addr, platform::Acu &acu, uintptr_t acu_baseaddr, platform::I2sTx &i2s_tx,
+              platform::I2sRx &i2s_rx);
 
     void Deinit();
 

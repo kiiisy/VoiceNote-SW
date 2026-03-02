@@ -19,6 +19,13 @@ inline constexpr uint32_t kGicBaseAddr            = XPAR_XSCUGIC_0_BASEADDR;
 inline constexpr uint32_t PsSpiBaseAddr           = XPAR_XSPIPS_0_BASEADDR;
 inline constexpr uint32_t I2sMuxBaseAddr          = XPAR_I2S_CLOCK_MUX_0_BASEADDR;
 
+// 割り込み信号のリネーム
+inline constexpr uint32_t kAudioFormatterTxIrqId = XPS_FPGA2_INT_ID;
+inline constexpr uint32_t kAudioFormatterRxIrqId = XPS_FPGA3_INT_ID;
+inline constexpr uint32_t kI2cPlIrqId            = XPS_FPGA4_INT_ID;
+inline constexpr uint32_t kI2sRxIrqId            = XPS_FPGA0_INT_ID;
+inline constexpr uint32_t kI2sTxIrqId            = XPS_FPGA1_INT_ID;
+
 // 基本フォーマット
 constexpr uint32_t kSampleRate   = 48000;  // Hz
 constexpr uint32_t kBitDepth     = 16;     // bits
@@ -37,21 +44,18 @@ constexpr uint32_t kPeriodsPerChunk     = 16;                    // total 16 per
 constexpr uint32_t kPeriodsPerHalf      = kPeriodsPerChunk / 2;  // 8 periods per half (A/B)
 constexpr uint32_t kPeriodsPerHalfBytes = kBytesPerPeriod * kPeriodsPerHalf;
 // 互換名（既存コード向け）
-constexpr uint32_t kPeriodsPerCh        = kPeriodsPerHalf;
-constexpr uint32_t kPeriodsBytes        = kBytesPerPeriod;
+constexpr uint32_t kPeriodsPerCh = kPeriodsPerHalf;
+constexpr uint32_t kPeriodsBytes = kBytesPerPeriod;
 
 // 1チャンク全体サイズ（16 Periods 分）
 constexpr uint32_t kBytesPerChunk = kBytesPerPeriod * kPeriodsPerChunk;  // 98,304 bytes
 
-inline constexpr uintptr_t kDmaBufBasePhys = 0x1000'0000u;
+// DMAバッファ設定
+inline constexpr uintptr_t kDmaBufBasePhys = 0x10000000u;
 inline constexpr uint32_t  kDmaBufBytes    = kBytesPerChunk;  // まずは等倍
 inline constexpr uint32_t  kDmaBufAlign    = 64;
 
-// 割り込み信号のリネーム
-inline constexpr uint32_t kAudioFormatterTxIrqId = XPS_FPGA2_INT_ID;
-inline constexpr uint32_t kAudioFormatterRxIrqId = XPS_FPGA3_INT_ID;
-inline constexpr uint32_t kI2cPlIrqId = XPS_FPGA4_INT_ID;
-inline constexpr uint32_t kI2sRxIrqId = XPS_FPGA0_INT_ID;
-inline constexpr uint32_t kI2sTxIrqId = XPS_FPGA1_INT_ID;
+// CPU1アドレス
+inline constexpr uintptr_t kCpu1StartAddr = 0x08000000u;
 
 }  // namespace core0

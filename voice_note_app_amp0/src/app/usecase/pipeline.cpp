@@ -1,3 +1,8 @@
+/**
+ * @file pipeline.cpp
+ * @brief Pipelineの実装
+ */
+
 // 自ヘッダー
 #include "pipeline.h"
 
@@ -8,12 +13,21 @@
 #include "audio_formatter_tx.h"
 #include "codec_provider.h"
 #include "common.h"
+#include "i2s_rx_core.h"
+#include "i2s_tx_core.h"
 #include "logger_core.h"
 
 namespace core0 {
 namespace app {
 
-bool Pipeline::Init(uintptr_t base_addr, module::AudioCodec &codec, platform::Acu &acu, uintptr_t acu_baseaddr)
+/**
+ * @brief 初期化処理
+ *
+ * @retval true  初期化成功
+ * @retval false 初期化失敗
+ */
+bool Pipeline::Init(uintptr_t base_addr, platform::Acu &acu, uintptr_t acu_baseaddr, platform::I2sTx &i2s_tx,
+                    platform::I2sRx &i2s_rx)
 {
     LOG_SCOPE();
 
@@ -43,8 +57,19 @@ bool Pipeline::Init(uintptr_t base_addr, module::AudioCodec &codec, platform::Ac
         return false;
     }
 
+    auto &codec = module::CodecProvider::GetInstance().Get();
     if (!codec.Init()) {
         LOGE("Codec initialization failed");
+        return false;
+    }
+
+    if (i2s_rx.Init({kI2sRxBaseAddr, I2sMuxBaseAddr, kI2sRxIrqId}) != XST_SUCCESS) {
+        LOGE("I2s RX Initialization Failed");
+        return false;
+    }
+
+    if (i2s_tx.Init({kI2sTxBaseAddr, I2sMuxBaseAddr, kI2sTxIrqId}) != XST_SUCCESS) {
+        LOGE("I2s TX Initialization Failed");
         return false;
     }
 
@@ -55,6 +80,9 @@ bool Pipeline::Init(uintptr_t base_addr, module::AudioCodec &codec, platform::Ac
     return true;
 }
 
+/**
+ * @brief 終了処理
+ */
 void Pipeline::Deinit()
 {
     if (rx_) {

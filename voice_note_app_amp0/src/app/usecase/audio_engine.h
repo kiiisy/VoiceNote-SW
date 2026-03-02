@@ -9,29 +9,25 @@
 
 // プロジェクトライブラリ
 #include "audio_bpp_pool.h"
-#include "audio_formatter_rx.h"
-#include "audio_formatter_tx.h"
 #include "audio_notification.h"
-#include "codec_provider.h"
 #include "common.h"
 #include "fsm.h"
-#include "i2s_rx_core.h"
-#include "i2s_tx_core.h"
-#include "notification_queue.h"
 #include "pipeline.h"
 #include "playback_controller.h"
 #include "record_controller.h"
 
 namespace core0 {
+namespace platform {
+class I2sTx;
+class I2sRx;
+}  // namespace platform
+
 namespace app {
 
 class AudioEngine final
 {
 public:
-    explicit AudioEngine(module::AudioCodec &codec, platform::I2sTx &i2s_tx, platform::I2sRx &i2s_rx)
-        : codec_(codec), i2s_tx_(i2s_tx), i2s_rx_(i2s_rx)
-    {
-    }
+    explicit AudioEngine(platform::I2sTx &i2s_tx, platform::I2sRx &i2s_rx) : i2s_tx_(i2s_tx), i2s_rx_(i2s_rx) {}
     ~AudioEngine() { Deinit(); }
 
     bool Init();
@@ -43,7 +39,7 @@ public:
     void RequestResume();
 
     void Task();
-    bool GetNextNotification(AudioNotification *noti);
+    bool GetNextNotification(AudioNotification *noti) { return notification_queue_.Dequeue(noti); }
 
     bool GetStatus(core::ipc::PlaybackStatusPayload *out) { return pb_ctrl_.GetStatus(out); };
     bool GetStatus(core::ipc::RecordStatusPayload *out) { return rec_ctrl_.GetStatus(out); };
@@ -53,12 +49,11 @@ public:
 
 private:
     void RunFsm();
-    void ExecuteAction(AudioAction action);
+    void ExecuteFsmAction(AudioAction action);
     void ProcessRecord();
     void ProcessPlayback();
-    void PushFsmEvent(AudioFsmEvent event);
-    void PublishNotification(AudioNotification::Type type, int32_t err);
 
+    // エラー系の用途未だ未定
     enum class Error : int32_t
     {
         kNone                = 0,
@@ -69,13 +64,10 @@ private:
     uintptr_t ddr_base_addr_ = kDmaBufBasePhys;
 
     // 外部モジュール
-    module::AudioBppPool      tx_pool_;
-    module::AudioBppPool      rx_pool_;
-    module::AudioFormatterTx *tx_{nullptr};
-    module::AudioFormatterRx *rx_{nullptr};
-    module::AudioCodec       &codec_;
-    platform::I2sTx          &i2s_tx_;
-    platform::I2sRx          &i2s_rx_;
+    module::AudioBppPool tx_pool_;
+    module::AudioBppPool rx_pool_;
+    platform::I2sTx     &i2s_tx_;
+    platform::I2sRx     &i2s_rx_;
 
     // パス管理
     static constexpr size_t kPathMax             = 128;
@@ -88,19 +80,50 @@ private:
     PlaybackController     pb_ctrl_;
     RecordController       rec_ctrl_;
 
-    struct Params
+    // FSM系の定義
+    struct FsmContext
     {
-        const char *play_path      = nullptr;
-        const char *rec_path       = nullptr;
-        uint32_t    sample_rate_hz = 48000;
-        uint16_t    bits           = 16;
-        uint16_t    ch             = 2;
+        struct ActionParams
+        {
+            const char *play_path      = nullptr;
+            const char *rec_path       = nullptr;
+            uint32_t    sample_rate_hz = kSampleRate;
+            uint16_t    bits           = kBitDepth;
+            uint16_t    ch             = kChannelCount;
+        };
+
+        AudioFsm      fsm{};
+        ActionParams  params{};
+        bool          has_event{false};
+        AudioFsmEvent event{AudioFsmEvent::UiPlayPressed};
+
+        void Reset()
+        {
+            fsm       = AudioFsm{};
+            params    = {};
+            has_event = false;
+            event     = AudioFsmEvent::UiPlayPressed;
+        }
+
+        void SetEvent(AudioFsmEvent ev)
+        {
+            has_event = true;
+            event     = ev;
+        }
+
+        bool Dispatch(AudioTransition *transition)
+        {
+            if (!has_event || !transition) {
+                return false;
+            }
+
+            has_event   = false;
+            *transition = fsm.Dispatch(event);
+            return true;
+        }
     };
 
-    AudioFsm      fsm_{};
-    Params        fsm_params_{};
-    bool          event_pending_{false};
-    AudioFsmEvent event_{AudioFsmEvent::UiPlayPressed};
+    FsmContext fsm_ctx_{};
 };
 
 }  // namespace app

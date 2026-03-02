@@ -15,7 +15,8 @@ enum class AudioState : uint8_t
     Playing,    // 再生中
     Paused,     // 再生一時停止中
     Recording,  // 録音中
-    Count
+
+    Max
 };
 
 /**
@@ -27,7 +28,8 @@ enum class AudioFsmEvent : uint8_t
     UiRecPressed,       // 録音トグル
     PbEnded,            // 再生終了
     RecEnded,           // 録音終了
-    Count
+
+    Max
 };
 
 /**
@@ -54,26 +56,14 @@ enum class AudioAction : uint16_t
     EmitRecordStarted,
     EmitRecordStopped,
 
-    Count
+    Max
 };
 
 struct AudioTransition
 {
     AudioState  next;
-    AudioAction a1;
-    AudioAction a2;
-};
-
-struct AudioFsmCtx
-{
-    // StartPlayback用
-    const char *play_path = nullptr;
-
-    // StartRecord用
-    const char *rec_path = nullptr;
-    uint32_t    sr       = 48000;
-    uint16_t    bits     = 16;
-    uint16_t    ch       = 2;
+    AudioAction action1;
+    AudioAction action2;
 };
 
 class AudioFsm final
@@ -84,11 +74,11 @@ public:
     AudioState GetState() const { return st_; }
 
     // eventを入れるとnextとactionsが返る（最大2個）
-    AudioTransition Dispatch(AudioFsmEvent ev)
+    AudioTransition Dispatch(AudioFsmEvent event)
     {
-        const auto t = kTable[static_cast<uint32_t>(st_)][static_cast<uint32_t>(ev)];
-        st_          = t.next;
-        return t;
+        const auto table = kTable[static_cast<uint32_t>(st_)][static_cast<uint32_t>(event)];
+        st_              = table.next;
+        return table;
     }
 
     void force_state(AudioState s) { st_ = s; }
@@ -96,8 +86,8 @@ public:
 private:
     AudioState st_{AudioState::Idle};
 
-    static constexpr AudioTransition kTable[static_cast<uint32_t>(AudioState::Count)]
-                                           [static_cast<uint32_t>(AudioFsmEvent::Count)] = {
+    static constexpr AudioTransition kTable[static_cast<uint32_t>(AudioState::Max)][static_cast<uint32_t>(
+        AudioFsmEvent::Max)] = {
         // =========================
         // Idle
         // =========================
