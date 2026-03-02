@@ -17,8 +17,6 @@
 #include "xparameters.h"
 
 // プロジェクトライブラリ
-#include "acu_core.h"
-#include "agc_core.h"
 #include "i2s_rx_core.h"
 #include "i2s_tx_core.h"
 #include "logger_core.h"
@@ -39,8 +37,7 @@ bool AudioEngine::Init()
     notification_queue_.Reset();
     fsm_ctx_.Reset();
 
-    if (!pipeline_.Init(ddr_base_addr_, platform::Acu::GetInstance(), XPAR_XAUDIO_CLEAN_UP_0_BASEADDR, i2s_tx_,
-                        i2s_rx_)) {
+    if (!pipeline_.Init(ddr_base_addr_, i2s_tx_, i2s_rx_)) {
         LOGE("pipeline_.Init failed");
         return false;
     }

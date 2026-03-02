@@ -8,6 +8,7 @@
 
 // プロジェクトライブラリ
 #include "acu_core.h"
+#include "agc_core.h"
 #include "audio_formatter_core.h"
 #include "audio_formatter_rx.h"
 #include "audio_formatter_tx.h"
@@ -26,8 +27,7 @@ namespace app {
  * @retval true  初期化成功
  * @retval false 初期化失敗
  */
-bool Pipeline::Init(uintptr_t base_addr, platform::Acu &acu, uintptr_t acu_baseaddr, platform::I2sTx &i2s_tx,
-                    platform::I2sRx &i2s_rx)
+bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sRx &i2s_rx)
 {
     LOG_SCOPE();
 
@@ -73,9 +73,13 @@ bool Pipeline::Init(uintptr_t base_addr, platform::Acu &acu, uintptr_t acu_basea
         return false;
     }
 
-    acu_ = &acu;
-    acu_->Init(acu_baseaddr);
-    acu_->ApplyDefault();
+    auto &agc = platform::Agc::GetInstance();
+    agc.Init(kAgcBaseAddr);
+    agc.ApplyDefault();
+
+    auto &acu = platform::Acu::GetInstance();
+    acu.Init(kAcuBaseAddr);
+    acu.ApplyDefault();
 
     return true;
 }
@@ -92,9 +96,8 @@ void Pipeline::Deinit()
         tx_->Deinit();
     }
 
-    rx_  = nullptr;
-    tx_  = nullptr;
-    acu_ = nullptr;
+    rx_ = nullptr;
+    tx_ = nullptr;
 }
 
 }  // namespace app

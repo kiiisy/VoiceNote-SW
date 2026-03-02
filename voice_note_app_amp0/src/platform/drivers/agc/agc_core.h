@@ -1,6 +1,6 @@
 /**
  * @file agc_core.h
- * @brief AGC IP 制御クラス定義（ToF距離→ゲイン）
+ * @brief AGC IP制御クラス定義
  */
 #pragma once
 
@@ -38,13 +38,8 @@ public:
 
     void Init(uintptr_t base_addr);
 
-    // 現状の SetAGC と同等のデフォルト設定
     void ApplyDefault();
-
     void ApplyConfig(const Config &cfg);
-
-    // ステータスダンプ（元 DumpAGCStatus）
-    void DumpStatus() const;
 
 private:
     Agc() = default;
@@ -56,7 +51,6 @@ private:
 
         inline Reg32 CONTROL() const { return blk_.Reg(0x00); }
 
-        // status/readbacks
         inline Reg32 STATUS() const { return blk_.Reg(0x04); }
         inline Reg32 DIST_RAW_MM() const { return blk_.Reg(0x08); }
         inline Reg32 DIST_CLAMP_MM() const { return blk_.Reg(0x0C); }
@@ -64,7 +58,6 @@ private:
         inline Reg32 GAIN_TARGET() const { return blk_.Reg(0x18); }  // Q2.14
         inline Reg32 GAIN_SMOOTH() const { return blk_.Reg(0x1C); }  // Q2.14
 
-        // configs
         inline Reg32 GAIN_MIN() const { return blk_.Reg(0x20); }   // Q2.14 (low 16)
         inline Reg32 GAIN_MAX() const { return blk_.Reg(0x24); }   // Q2.14 (low 16)
         inline Reg32 ALPHA_CFG() const { return blk_.Reg(0x28); }  // low 4
@@ -75,7 +68,7 @@ private:
 
     static uint32_t ToQ2_14(float g);
 
-    uintptr_t base_ = 0;
+    uintptr_t base_{0};
     Regs      regs_{0};
 };
 }  // namespace platform

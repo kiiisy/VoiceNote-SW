@@ -1,6 +1,6 @@
 /**
  * @file acu_core.cpp
- * @brief Audio Clean Up(ACU) IP 制御クラス実装
+ * @brief Acuの実装
  */
 
 // 自ヘッダー

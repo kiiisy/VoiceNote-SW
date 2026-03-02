@@ -1,9 +1,6 @@
 /**
  * @file acu_core.h
- * @brief Audio Clean Up(ACU) IP 制御クラス定義
- *
- * audio_clean_up (DC-cut + NoiseGate) の AXI4-Lite レジスタへアクセスし、
- * パラメータ設定を行う薄いドライバ。
+ * @brief Audio Clean Up(ACU) IP制御クラス定義
  */
 #pragma once
 
@@ -45,17 +42,14 @@ public:
         uint32_t ng_pass   = 0x1;  // 0: enable, 1: bypass
     };
 
-    // ベースアドレス指定（通常は xparameters の XPAR_*_BASEADDR を渡す）
     void Init(uintptr_t base_addr);
 
-    // 現状の SetACUReg と同等のデフォルト設定を投入
     void ApplyDefault();
 
     // 個別設定
     void SetDcCut(const DcCutConfig &cfg);
     void SetNoiseGate(const NoiseGateConfig &cfg);
 
-    // ap_ctrl_hs の start/auto_restart をセット（あなたの SetACUReg の最後の 0x81）
     void Start(bool auto_restart = true);
 
 private:
@@ -154,7 +148,7 @@ private:
         RegCore blk_;
     };
 
-    uintptr_t base_ = 0;
+    uintptr_t base_{0};
     Regs      regs_{0};
 };
 
