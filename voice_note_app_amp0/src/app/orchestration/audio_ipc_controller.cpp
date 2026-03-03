@@ -13,7 +13,7 @@
 #include "acu_core.h"
 #include "logger_core.h"
 #include "mapper/agc_config_mapper.h"
-#include "system/utility.h"
+#include "utility.h"
 #include "wav_reader.h"
 
 namespace core0 {
