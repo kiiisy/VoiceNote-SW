@@ -4,7 +4,7 @@
 #include <cstdint>
 
 // プロジェクトライブラリ
-#include "common.h"
+#include "audio_format.h"
 
 namespace i2stx {
 

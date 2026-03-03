@@ -8,14 +8,16 @@
 
 // プロジェクトライブラリ
 #include "acu_core.h"
+#include "addr_map.h"
 #include "agc_core.h"
+#include "audio_format.h"
 #include "audio_formatter_core.h"
 #include "audio_formatter_rx.h"
 #include "audio_formatter_tx.h"
 #include "codec_provider.h"
-#include "common.h"
 #include "i2s_rx_core.h"
 #include "i2s_tx_core.h"
+#include "irq_map.h"
 #include "logger_core.h"
 
 namespace core0 {
@@ -38,7 +40,7 @@ bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sR
     }
 
     const module::AudioFormatterTx::Config tx_cfg = {
-        kAudioFormatterTxIrqId, base_addr, kChannelCount, BIT_DEPTH_16, kPeriodsPerCh, kPeriodsBytes,
+        kAudioFormatterTxIrqId, base_addr, kChannelCount, BIT_DEPTH_16, kPeriodsPerHalf, kBytesPerPeriod,
     };
 
     tx_ = &module::AudioFormatterTx::GetInstance();
@@ -48,7 +50,7 @@ bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sR
     }
 
     const module::AudioFormatterRx::Config rx_cfg = {
-        kAudioFormatterRxIrqId, base_addr, kChannelCount, BIT_DEPTH_16, kPeriodsPerCh, kPeriodsBytes,
+        kAudioFormatterRxIrqId, base_addr, kChannelCount, BIT_DEPTH_16, kPeriodsPerHalf, kBytesPerPeriod,
     };
 
     rx_ = &module::AudioFormatterRx::GetInstance();

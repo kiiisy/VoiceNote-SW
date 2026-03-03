@@ -9,9 +9,10 @@
 
 // プロジェクトライブラリ
 #include "audio_bpp_pool.h"
+#include "audio_format.h"
 #include "audio_notification.h"
-#include "common.h"
 #include "fsm.h"
+#include "memory_map.h"
 #include "pipeline.h"
 #include "playback_controller.h"
 #include "record_controller.h"

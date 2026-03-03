@@ -13,7 +13,7 @@
 #include "acu_core.h"
 #include "logger_core.h"
 #include "mapper/agc_config_mapper.h"
-#include "utility.h"
+#include "system/utility.h"
 #include "wav_reader.h"
 
 namespace core0 {
@@ -40,9 +40,9 @@ void AudioIpcController::SetHandlers()
 
     // AGC設定更新
     server_.on_set_agc = [&](const core::ipc::SetAgcPayload &p) -> int32_t {
-        auto cfg = core0::app::ToAgcConfig(p);
+        auto cfg = ToAgcConfig(p);
 
-        core0::platform::Agc::GetInstance().ApplyConfig(cfg);
+        platform::Agc::GetInstance().ApplyConfig(cfg);
 
         LOGI("SetAgc applied: en=%u dist=%d min=%d max=%d k=%d", (unsigned)p.enable, (int)p.dist_mm,
              (int)p.min_gain_x100, (int)p.max_gain_x100, (int)p.speed_k);
@@ -52,19 +52,19 @@ void AudioIpcController::SetHandlers()
 
     // ACU設定更新
     server_.on_set_rec_option = [&](const core::ipc::RecOptionPayload &p) -> int32_t {
-        core0::platform::Acu::DcCutConfig dc{};
+        platform::Acu::DcCutConfig dc{};
         dc.fs_hz   = 48000.0f;
         dc.fc_hz   = static_cast<float>(p.dc_fc_q16) / 65536.0f;
         dc.dc_pass = p.dc_enable ? 0u : 1u;
 
-        core0::platform::Acu::NoiseGateConfig ng{};
+        platform::Acu::NoiseGateConfig ng{};
         ng.th_open   = static_cast<float>(p.ng_th_open_q15) / 32768.0f;
         ng.th_close  = static_cast<float>(p.ng_th_close_q15) / 32768.0f;
         ng.attack_s  = static_cast<float>(p.ng_attack_ms) / 1000.0f;
         ng.release_s = static_cast<float>(p.ng_release_ms) / 1000.0f;
         ng.ng_pass   = p.ng_enable ? 0u : 1u;
 
-        auto &acu = core0::platform::Acu::GetInstance();
+        auto &acu = platform::Acu::GetInstance();
         acu.SetDcCut(dc);
         acu.SetNoiseGate(ng);
 
@@ -143,14 +143,14 @@ int32_t AudioIpcController::OnRecStart(const core::ipc::RecStartPayload &p)
     char auto_name[sizeof(p.filename)]{};
     std::snprintf(auto_name, sizeof(auto_name), "/record_%05u.wav", (unsigned)next_rec_index_);
 
-    LOGI("Received Recording start message: auto filename=%s", auto_name);
+    LOGI("Received Recording start message : filename=%s", auto_name);
 
     if (!sys_.RequestRecord(auto_name, p.sample_rate_hz, p.bits, p.ch)) {
         LOGE("RequestRecord failed: filename=%s", auto_name);
         return -1;
     }
 
-    // 次回採番を更新する（上限到達でロールオーバー）
+    // 次回採番を更新する
     if (next_rec_index_ < kMaxRecIndex) {
         ++next_rec_index_;
     } else {
@@ -214,24 +214,24 @@ int32_t AudioIpcController::OnListDir(const core::ipc::ListDirPayload &p, uint32
 void AudioIpcController::NotifyStatus()
 {
     // 通知を取り出して、必要なステータスを即時送信する
-    core0::app::AudioNotification noti;
+    AudioNotification noti;
     while (sys_.GetNextNotification(&noti)) {
         switch (noti.type) {
-            case core0::app::AudioNotification::Type::kPlaybackStarted:
-            case core0::app::AudioNotification::Type::kPlaybackPaused:
-            case core0::app::AudioNotification::Type::kPlaybackResumed:
-            case core0::app::AudioNotification::Type::kPlaybackStopped:
+            case AudioNotification::Type::kPlaybackStarted:
+            case AudioNotification::Type::kPlaybackPaused:
+            case AudioNotification::Type::kPlaybackResumed:
+            case AudioNotification::Type::kPlaybackStopped:
                 SendPlaybackStatus();
                 break;
 
-            case core0::app::AudioNotification::Type::kRecordStarted:
+            case AudioNotification::Type::kRecordStarted:
                 SendRecordStatus();
                 break;
-            case core0::app::AudioNotification::Type::kRecordStopped:
+            case AudioNotification::Type::kRecordStopped:
                 SendRecordStatus();
                 break;
 
-            case core0::app::AudioNotification::Type::kError:
+            case AudioNotification::Type::kError:
                 // 必要ならエラー通知
                 break;
 

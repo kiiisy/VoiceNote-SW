@@ -13,7 +13,6 @@
 
 // プロジェクトライブラリ
 #include "audio_formatter_core.h"
-#include "common.h"
 #include "constant.h"
 #include "gic_core.h"
 #include "reg_core.h"

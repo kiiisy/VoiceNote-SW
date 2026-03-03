@@ -1,10 +1,11 @@
 // プロジェクトライブラリ
+#include "addr_map.h"
 #include "amp_hw.h"
 #include "app_server.h"
 #include "audio_engine.h"
+#include "audio_format.h"
 #include "audio_ipc_controller.h"
 #include "board_io.h"
-#include "common.h"
 #include "core_boot.h"
 #include "core_init.h"
 #include "gic_core.h"
@@ -12,6 +13,7 @@
 #include "i2s_rx_core.h"
 #include "i2s_tx_core.h"
 #include "logger_core.h"
+#include "memory_map.h"
 #include "mmu_utility.h"
 
 int main()

@@ -11,7 +11,6 @@
 // プロジェクトライブラリ
 #include "audio_bpp_pool.h"
 #include "audio_formatter_tx.h"
-#include "common.h"
 #include "ipc_msg.h"
 #include "sd_bpp_feeder.h"
 #include "wav_reader.h"

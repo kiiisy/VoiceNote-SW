@@ -17,9 +17,10 @@
 #include <cstdint>
 
 // プロジェクトライブラリ
+#include "addr_map.h"
 #include "codec_if.h"
-#include "common.h"
 #include "i2c_pl_core.h"
+#include "irq_map.h"
 
 namespace core0 {
 namespace module {

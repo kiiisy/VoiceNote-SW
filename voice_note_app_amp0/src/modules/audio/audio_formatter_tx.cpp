@@ -14,6 +14,7 @@
 #include "xstatus.h"
 
 // プロジェクトライブラリ
+#include "audio_format.h"
 #include "logger_core.h"
 #include "utility.h"
 
@@ -78,9 +79,9 @@ void AudioFormatterTx::Mm2sTimeoutCallback(void *ref) noexcept
 void AudioFormatterTx::OnMm2sIoc()
 {
     ioc_count_++;
-    uint32_t per = ioc_count_ % (kPeriodsPerCh * 2);
+    uint32_t per = ioc_count_ % (kPeriodsPerHalf * 2);
 
-    if (per == kPeriodsPerCh) {
+    if (per == kPeriodsPerHalf) {
         ready_buffer_side_ = BufferSide::Ping;
     } else if (per == 0) {
         ready_buffer_side_ = BufferSide::Pong;
