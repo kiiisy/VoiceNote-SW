@@ -3,7 +3,7 @@
 /**
  * @brief 現在時刻をms単位で取得する
  */
-uint32_t GetTimeMs()
+inline uint32_t GetTimeMs()
 {
     XTime t;
     XTime_GetTime(&t);

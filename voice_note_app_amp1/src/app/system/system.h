@@ -8,18 +8,24 @@
 #include <cstdint>
 
 // プロジェクトライブラリ
+#include "app_event_bus.h"
 #include "fsm.h"
-#include "play.h"
-#include "play_agc.h"
-#include "playlist.h"
-#include "rec.h"
-#include "rec_option.h"
+#include "ipc_command_handler.h"
+#include "ipc_status_handler.h"
+#include "playlist_handler.h"
+#include "ui_input_handler.h"
+#include "ui_view_updater.h"
 
 namespace core1 {
 
 namespace gui {
 class LvglController;
-}
+struct PlayRequest;
+struct RecRequest;
+struct PlayAgcRequest;
+struct RecOptionRequest;
+struct PlayListRequest;
+}  // namespace gui
 
 namespace platform {
 class TouchCtrl;
@@ -46,6 +52,9 @@ public:
         platform::GpioPl    *gpio_pl{nullptr};  // IRQ再許可が必要なら
     };
 
+    System() = default;
+    ~System() = default;
+
     void Init(const Deps &deps);
     void Run();
 
@@ -58,48 +67,32 @@ public:
     void OnPlayListRequeste(const gui::PlayListRequest &req);
 
 private:
-    void BindGuiCallbacks();
-    void BindIpcCallbacks();
-
-    void HandleEvent(Event event);
-    void ExecuteAction(ActionId action);
+    void ProcessPendingEvents();
+    void ExecuteFsmAction(ActionId action);
 
     ipc::IpcClient      *ipc_{nullptr};      // IPCクライアント
     gui::LvglController *gui_{nullptr};      // GUIコントローラ
     platform::TouchCtrl *touch_{nullptr};    // タッチ入力制御
     platform::GpioPl    *gpio_pl_{nullptr};  // PL GPIO
 
-    uint8_t last_pb_state_{0xFF};
-    uint8_t last_rec_state_{0xFF};
+    uint32_t lv_period_ms_{5};  // LVGL timer handlerの呼び出し周期（ms）
+    uint32_t sleep_us_{1000};   // メインループsleep値（us）
 
-    uint32_t                  lv_period_ms_{5};  // LVGL timer handlerの呼び出し周期（ms）
-    uint32_t                  sleep_us_{1000};   // メインループsleep値（us）
-    static constexpr uint32_t kUiPlayDebounceMs  = 180;
-    static constexpr uint32_t kUiRecDebounceMs   = 180;
     static constexpr uint32_t kMaxDeltaMsPerLoop = 50;  // LVGLへ渡す1回あたりの最大経過時間[ms]
     static constexpr uint32_t kIpcPollBatch      = 8;   // 1ループで処理するIPCイベント件数
-    static constexpr uint32_t kTouchPeriodMsHot  = 5;   // 押下中のタッチ追従周期[ms]
-    static constexpr uint32_t kTouchPeriodMsIdle = 15;  // 非押下時のタッチ確認周期[ms]
+    static constexpr uint32_t kTouchPeriodMsHot  = 3;   // 押下中のタッチ追従周期[ms]
+    static constexpr uint32_t kTouchPeriodMsIdle = 10;  // 非押下時のタッチ確認周期[ms]
 
     uint32_t prev_ms_{0};        // 前回ループのnow_ms
     uint32_t next_touch_ms_{0};  // 次回タッチ処理予定時刻（ms）
     uint32_t next_lvgl_ms_{0};   // 次回LVGL処理予定時刻（ms）
-    uint32_t last_ui_play_req_ms_{0};
-    uint32_t last_ui_rec_req_ms_{0};
 
-    gui::PlayRequest    last_play_req_{};
-    bool                has_play_req_{false};
-    gui::PlayAgcRequest last_playopt_req_{};
-    bool                has_playopt_req_{false};
-    gui::RecRequest     last_rec_req_{};
-    bool                has_rec_req_{false};
-
-    static constexpr uint16_t kMaxPlayListFiles = 10;
-    uint32_t                  list_dir_seq_{0};
-    bool                      list_dir_inflight_{false};
-    uint16_t                  list_dir_count_{0};
-    char                      list_dir_names_[kMaxPlayListFiles][80]{};
-    const char               *list_dir_name_ptrs_[kMaxPlayListFiles]{};
+    AppEventBus      event_bus_{};
+    PlayListHandler  playlist_handler_{};
+    UiInputHandler   ui_input_handler_{};
+    IpcStatusHandler ipc_status_handler_{};
+    IpcCommandHandler ipc_command_handler_{};
+    UiViewUpdater    ui_view_updater_{};
 
     Fsm media_fsm_{};
 };

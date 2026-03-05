@@ -1,7 +1,7 @@
 #include "amp_hw.h"
 #include "app_client.h"
 #include "common.h"
-#include "display/display_spec.h"
+#include "display_spec.h"
 #include "gic_core.h"
 #include "gpio_pl.h"
 #include "gpio_ps.h"
@@ -10,10 +10,9 @@
 #include "lcd_bus.h"
 #include "logger_core.h"
 #include "lvgl_controller.h"
-#include "sleep.h"
 #include "spi_ps.h"
 #include "st7789_panel.h"
-#include "system.h"
+#include "system/system.h"
 #include "touch_ctrl.h"
 #include "xparameters.h"
 #include <cinttypes>
@@ -25,10 +24,11 @@ int main()
 {
     LOG_SCOPE();
 
-    // -------------------------
-    // AMP設定
-    // -------------------------
+    // --------------------------------------------
+    // CPUブート & IPCクライアント起動
+    // --------------------------------------------
     core::ipc::InitAmpOcmSharedSafe();
+
     auto *shared = core::ipc::GetShared();
 
     core1::ipc::IpcClient ipc(shared);
@@ -42,9 +42,9 @@ int main()
              (unsigned)st.remain_ms, (unsigned)st.state);
     };
 
-    // -------------------------
-    // 割り込みコントローラーの初期化
-    // -------------------------
+    // --------------------------------------------
+    // 各初期化 & 処理実行
+    // --------------------------------------------
     auto &gic = core1::platform::GicCore::GetInstance();
     if (gic.Init({.base_addr = XPAR_XSCUGIC_0_BASEADDR, .target_cpu = core1::platform::GicCore::CpuTarget::Cpu1}) !=
         XST_SUCCESS) {
@@ -86,9 +86,9 @@ int main()
                                    core1::platform::PanelInterface::MADCTL_BGR);
 #endif
 
-    // -------------------------
-    // LVGL + Touch
-    // -------------------------
+    // --------------------------------------------
+    // GUI生成（LVGL） & タッチ起動
+    // --------------------------------------------
     core1::gui::LvglController lvgl({.hor              = core1::common::display::kWidth,
                                      .ver              = core1::common::display::kHeight,
                                      .swapRgb565Bytes  = true,
@@ -114,7 +114,6 @@ int main()
         return -1;
     }
 
-    // タッチ割り込み → NotifyInterrupt
     gpio_pl.SetIrqCallback([&]() {
         gpio_pl.DisableIrq();
         touch.NotifyInterrupt();
@@ -123,17 +122,13 @@ int main()
 
     lvgl.RegisterTouch(touch);
 
-    // GUI生成
     lvgl.InitScreens();
 
-    // -------------------------
-    // System
-    // -------------------------
+    // --------------------------------------------
+    // システム起動
+    // --------------------------------------------
     core1::app::System sys;
     sys.Init({.ipc = &ipc, .gui = &lvgl, .touch = &touch, .gpio_pl = &gpio_pl});
 
-    // -------------------------
-    // メイン処理
-    // -------------------------
     sys.Run();
 }

@@ -179,6 +179,8 @@ void LvglController::RegisterTouch(platform::TouchCtrl &touch)
     lv_indev_set_read_cb(indev_, &LvglController::ReadTouchCallback);
     lv_indev_set_user_data(indev_, this);
     lv_indev_set_display(indev_, disp_);
+    // 小さめの移動でもスクロール開始させて、リスト操作の反応を上げる
+    lv_indev_set_scroll_limit(indev_, 6);
     lv_indev_enable(indev_, true);
 }
 

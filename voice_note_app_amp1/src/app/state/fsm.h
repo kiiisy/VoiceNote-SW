@@ -18,7 +18,8 @@ enum class State : uint8_t
     Playing,
     Paused,
     Recording,
-    Count
+
+    Max
 };
 
 // イベント
@@ -28,7 +29,8 @@ enum class Event : uint8_t
     UiRecPressed,
     IpcPlaybackStopped,
     IpcRecordStopped,
-    Count
+
+    Max
 };
 
 // 外部向けのアクションと内部向けのアクションを分けた方がいいが、面倒なので同じenumで管理
@@ -55,31 +57,29 @@ enum class ActionId : uint16_t
 struct Transition
 {
     State    next;
-    ActionId act1;
-    ActionId act2;
+    ActionId action1;
+    ActionId action2;
 };
 
 class Fsm
 {
 public:
-    struct Ctx
-    {
-        // 将来拡張用：再生ファイル名、rec設定など
-    };
-
-    Fsm();
+    Fsm() : st_(State::Idle) {}
 
     State GetState() const { return st_; }
 
-    Transition Dispatch(Event event);
+    // eventを入れるとnextとactionsが返る（最大2個）
+    Transition Dispatch(Event event)
+    {
+        const auto table = kTable[static_cast<uint32_t>(st_)][static_cast<uint32_t>(event)];
+        st_              = table.next;
+        return table;
+    }
 
 private:
     State st_{State::Idle};
 
-    static constexpr std::size_t kStateCount = static_cast<std::size_t>(State::Count);
-    static constexpr std::size_t kEventCount = static_cast<std::size_t>(Event::Count);
-
-    static constexpr Transition kTable[kStateCount][kEventCount] = {
+    static constexpr Transition kTable[static_cast<uint32_t>(State::Max)][static_cast<uint32_t>(Event::Max)] = {
         // =========================================================
         // Idle
         // =========================================================
