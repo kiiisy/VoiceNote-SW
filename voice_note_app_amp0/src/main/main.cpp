@@ -2,9 +2,8 @@
 #include "addr_map.h"
 #include "amp_hw.h"
 #include "app_server.h"
-#include "audio_engine.h"
+#include "system.h"
 #include "audio_format.h"
-#include "audio_ipc_controller.h"
 #include "board_io.h"
 #include "core_boot.h"
 #include "core_init.h"
@@ -59,17 +58,15 @@ int main()
     auto &i2s_rx = core0::platform::I2sRx::GetInstance();
     auto &i2s_tx = core0::platform::I2sTx::GetInstance();
 
-    core0::app::AudioEngine sys(i2s_tx, i2s_rx);
+    core0::app::System sys(server, i2s_tx, i2s_rx);
 
     if (!sys.Init()) {
         LOGE("System Initialization Failed");
         return -1;
     }
 
-    core0::app::AudioIpcController app(server, sys);
-    app.SetHandlers();
-
-    app.Run();
+    sys.SetHandlers();
+    sys.Run();
 
     return 0;
 }

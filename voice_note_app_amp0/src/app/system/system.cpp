@@ -1,15 +1,14 @@
 /**
- * @file audio_engine.cpp
- * @brief audio_engineの実装
+ * @file system.cpp
+ * @brief Systemの実装
  */
 
 // 自ヘッダー
-#include "audio_engine.h"
+#include "system.h"
 
 // 標準ライブラリ
 #include <algorithm>
 #include <cmath>
-#include <string.h>
 
 // Vtiisライブラリ
 #include "sleep.h"
@@ -30,11 +29,11 @@ namespace app {
  * @retval true  初期化成功
  * @retval false 初期化失敗
  */
-bool AudioEngine::Init()
+bool System::Init()
 {
     LOG_SCOPE();
 
-    notification_queue_.Reset();
+    notification_publisher_.Reset();
     fsm_ctx_.Reset();
 
     if (!pipeline_.Init(ddr_base_addr_, i2s_tx_, i2s_rx_)) {
@@ -68,7 +67,7 @@ bool AudioEngine::Init()
 /**
  * @brief 終了処理
  */
-void AudioEngine::Deinit()
+void System::Deinit()
 {
     // HW
     pb_ctrl_.Reset();
@@ -79,7 +78,7 @@ void AudioEngine::Deinit()
     tx_pool_.Deinit();
     rx_pool_.Deinit();
 
-    notification_queue_.Reset();
+    notification_publisher_.Reset();
     fsm_ctx_.Reset();
 }
 
@@ -90,16 +89,13 @@ void AudioEngine::Deinit()
  * @retval true  要求受理
  * @retval false 引数不正
  */
-bool AudioEngine::RequestPlay(const char *wav_path)
+bool System::EnqueuePlay(const char *wav_path)
 {
     if (!wav_path) {
         return false;
     }
 
-    strncpy(play_path_, wav_path, kPathMax - 1);
-    play_path_[kPathMax - 1] = '\0';
-
-    fsm_ctx_.params.play_path = play_path_;
+    fsm_ctx_.params.play_path = wav_path;
     fsm_ctx_.SetEvent(AudioFsmEvent::UiPlayPressed);
 
     return true;
@@ -115,16 +111,13 @@ bool AudioEngine::RequestPlay(const char *wav_path)
  * @retval true  要求受理
  * @retval false 引数不正
  */
-bool AudioEngine::RequestRecord(const char *wav_path, uint32_t sample_rate_hz, uint16_t bits, uint16_t ch)
+bool System::EnqueueRecord(const char *wav_path, uint32_t sample_rate_hz, uint16_t bits, uint16_t ch)
 {
     if (!wav_path) {
         return false;
     }
 
-    strncpy(rec_path_, wav_path, kPathMax - 1);
-    rec_path_[kPathMax - 1] = '\0';
-
-    fsm_ctx_.params.rec_path       = rec_path_;
+    fsm_ctx_.params.rec_path       = wav_path;
     fsm_ctx_.params.sample_rate_hz = sample_rate_hz;
     fsm_ctx_.params.bits           = bits;
     fsm_ctx_.params.ch             = ch;
@@ -135,43 +128,46 @@ bool AudioEngine::RequestRecord(const char *wav_path, uint32_t sample_rate_hz, u
 }
 
 /**
- * @brief 録音停止要求受け付け処理
- *
- * @retval true 常にtrue
+ * @brief 録音トグル要求受け付け処理
  */
-bool AudioEngine::RequestRecordStop()
-{
-    if (fsm_ctx_.fsm.GetState() == AudioState::Recording) {
-        fsm_ctx_.SetEvent(AudioFsmEvent::UiRecPressed);
-    }
+void System::EnqueueRecToggle() { fsm_ctx_.SetEvent(AudioFsmEvent::UiRecPressed); }
 
-    return true;
+/**
+ * @brief 再生トグル要求受け付け処理
+ */
+void System::EnqueuePlayToggle() { fsm_ctx_.SetEvent(AudioFsmEvent::UiPlayPressed); }
+
+/**
+ * @brief AppServerの各コマンドハンドラを登録する
+ */
+void System::SetHandlers()
+{
+    command_handler_.BindHandlers();
+    dsp_config_handler_.BindHandlers();
+    file_query_handler_.BindHandlers();
 }
 
 /**
- * @brief 一時停止要求受け付け処理
+ * @brief IPC処理ループを実行する
  */
-void AudioEngine::RequestPause()
+void System::Run()
 {
-    if (fsm_ctx_.fsm.GetState() == AudioState::Playing) {
-        fsm_ctx_.SetEvent(AudioFsmEvent::UiPlayPressed);
-    }
-}
+    while (1) {
+        // 受信コマンドを処理する
+        server_.Task(8);
 
-/**
- * @brief 再開要求受け付け処理
- */
-void AudioEngine::RequestResume()
-{
-    if (fsm_ctx_.fsm.GetState() == AudioState::Paused) {
-        fsm_ctx_.SetEvent(AudioFsmEvent::UiPlayPressed);
+        // Systemの周期処理を進める
+        Task();
+
+        // 状態通知をIPCへ返す
+        status_handler_.NotifyStatus();
     }
 }
 
 /**
  * @brief 周期処理
  */
-void AudioEngine::Task()
+void System::Task()
 {
     // FSMイベントがあれば dispatch → action実行
     RunFsm();
@@ -197,7 +193,7 @@ void AudioEngine::Task()
 /**
  * @brief 再生系の周期処理を実行
  */
-void AudioEngine::ProcessPlayback()
+void System::ProcessPlayback()
 {
     if (pb_ctrl_.IsActive()) {
         pb_ctrl_.Process();
@@ -207,25 +203,25 @@ void AudioEngine::ProcessPlayback()
     while (pb_ctrl_.PopEvent(&pev)) {
         switch (pev.type) {
             case PlaybackController::Event::kStarted:
-                notification_queue_.Enqueue(AudioNotification::Type::kPlaybackStarted,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kPlaybackStarted,
+                                                static_cast<int32_t>(Error::kNone));
                 break;
             case PlaybackController::Event::kPaused:
-                notification_queue_.Enqueue(AudioNotification::Type::kPlaybackPaused,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kPlaybackPaused,
+                                                static_cast<int32_t>(Error::kNone));
                 break;
             case PlaybackController::Event::kResumed:
-                notification_queue_.Enqueue(AudioNotification::Type::kPlaybackResumed,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kPlaybackResumed,
+                                                static_cast<int32_t>(Error::kNone));
                 break;
             case PlaybackController::Event::kStopped:
-                notification_queue_.Enqueue(AudioNotification::Type::kPlaybackStopped,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kPlaybackStopped,
+                                                static_cast<int32_t>(Error::kNone));
                 i2s_tx_.Disable();
                 fsm_ctx_.SetEvent(AudioFsmEvent::PbEnded);
                 break;
             case PlaybackController::Event::kError:
-                notification_queue_.Enqueue(AudioNotification::Type::kError, pev.err);
+                notification_publisher_.Publish(AudioNotification::Type::kError, pev.err);
                 i2s_tx_.Disable();
                 fsm_ctx_.SetEvent(AudioFsmEvent::PbEnded);
                 break;
@@ -238,7 +234,7 @@ void AudioEngine::ProcessPlayback()
 /**
  * @brief 録音系の周期処理を実行
  */
-void AudioEngine::ProcessRecord()
+void System::ProcessRecord()
 {
     if (rec_ctrl_.IsActive()) {
         rec_ctrl_.Process();
@@ -248,17 +244,17 @@ void AudioEngine::ProcessRecord()
     while (rec_ctrl_.PopEvent(&rev)) {
         switch (rev.type) {
             case RecordController::Event::kStarted:
-                notification_queue_.Enqueue(AudioNotification::Type::kRecordStarted,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kRecordStarted,
+                                                static_cast<int32_t>(Error::kNone));
                 break;
             case RecordController::Event::kStopped:
-                notification_queue_.Enqueue(AudioNotification::Type::kRecordStopped,
-                                            static_cast<int32_t>(Error::kNone));
+                notification_publisher_.Publish(AudioNotification::Type::kRecordStopped,
+                                                static_cast<int32_t>(Error::kNone));
                 i2s_rx_.Disable();
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
                 break;
             case RecordController::Event::kError:
-                notification_queue_.Enqueue(AudioNotification::Type::kError, rev.err);
+                notification_publisher_.Publish(AudioNotification::Type::kError, rev.err);
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
                 break;
             default:
@@ -270,7 +266,7 @@ void AudioEngine::ProcessRecord()
 /**
  * @brief FSMイベントを処理しアクションを実行
  */
-void AudioEngine::RunFsm()
+void System::RunFsm()
 {
     AudioTransition transition{};
 
@@ -286,7 +282,7 @@ void AudioEngine::RunFsm()
  *
  * @param[in] action 実行するアクション
  */
-void AudioEngine::ExecuteFsmAction(AudioAction action)
+void System::ExecuteFsmAction(AudioAction action)
 {
     switch (action) {
         case AudioAction::None: {
@@ -300,8 +296,8 @@ void AudioEngine::ExecuteFsmAction(AudioAction action)
 
             if (!result) {
                 i2s_tx_.Disable();
-                notification_queue_.Enqueue(AudioNotification::Type::kError,
-                                            static_cast<int32_t>(Error::kPlaybackStartFailed));
+                notification_publisher_.Publish(AudioNotification::Type::kError,
+                                                static_cast<int32_t>(Error::kPlaybackStartFailed));
                 fsm_ctx_.SetEvent(AudioFsmEvent::PbEnded);
             }
             return;
@@ -325,8 +321,8 @@ void AudioEngine::ExecuteFsmAction(AudioAction action)
 
             if (!result) {
                 i2s_rx_.Disable();
-                notification_queue_.Enqueue(AudioNotification::Type::kError,
-                                            static_cast<int32_t>(Error::kRecordStartFailed));
+                notification_publisher_.Publish(AudioNotification::Type::kError,
+                                                static_cast<int32_t>(Error::kRecordStartFailed));
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
             }
             return;
@@ -349,7 +345,7 @@ void AudioEngine::ExecuteFsmAction(AudioAction action)
  * @retval true  Playing/Paused
  * @retval false それ以外
  */
-bool AudioEngine::IsPlaybackActive() const
+bool System::IsPlaybackActive() const
 {
     const auto state = fsm_ctx_.fsm.GetState();
     return (state == AudioState::Playing) || (state == AudioState::Paused);
@@ -361,7 +357,7 @@ bool AudioEngine::IsPlaybackActive() const
  * @retval true  Recording
  * @retval false それ以外
  */
-bool AudioEngine::IsRecordActive() const
+bool System::IsRecordActive() const
 {
     const auto state = fsm_ctx_.fsm.GetState();
     return state == AudioState::Recording;

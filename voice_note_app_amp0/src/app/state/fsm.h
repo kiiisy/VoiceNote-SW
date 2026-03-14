@@ -7,7 +7,7 @@ namespace core0 {
 namespace app {
 
 /**
- * @brief AudioEngineの外部に見せる状態
+ * @brief Systemの外部に見せる状態
  */
 enum class AudioState : uint8_t
 {
