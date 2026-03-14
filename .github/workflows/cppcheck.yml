@@ -1,0 +1,52 @@
+name: Cppcheck
+
+on:
+  pull_request:
+    paths:
+      - "voice_note_app_amp0/**"
+      - "voice_note_app_amp1/**"
+      - ".github/workflows/cppcheck.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        run: |
+          mkdir -p reports
+
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --inconclusive \
+            --std=c++17 \
+            --language=c++ \
+            --force \
+            --quiet \
+            --error-exitcode=1 \
+            --inline-suppr \
+            --xml \
+            --xml-version=2 \
+            --suppress=missingIncludeSystem \
+            -ivoice_note_app_amp1/src/third_party \
+            voice_note_app_amp0/src \
+            voice_note_app_amp1/src \
+            2> reports/cppcheck.xml
+
+      - name: Upload cppcheck report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-report
+          path: reports/cppcheck.xml
