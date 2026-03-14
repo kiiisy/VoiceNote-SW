@@ -27,6 +27,7 @@ jobs:
         run: |
           mkdir -p reports
 
+          set +e
           cppcheck \
             --enable=warning,style,performance,portability \
             --inconclusive \
@@ -43,10 +44,9 @@ jobs:
             voice_note_app_amp0/src \
             voice_note_app_amp1/src \
             2> reports/cppcheck.xml
+          status=$?
 
-      - name: Upload cppcheck report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cppcheck-report
-          path: reports/cppcheck.xml
+          echo "===== cppcheck.xml ====="
+          cat reports/cppcheck.xml
+
+          exit $status
