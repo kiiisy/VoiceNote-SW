@@ -22,6 +22,13 @@
 
 namespace core0 {
 namespace app {
+namespace {
+int CppcheckTestFunction()
+{
+    int *p = nullptr;
+    return *p;
+}
+}  // namespace
 
 /**
  * @brief 初期化処理
