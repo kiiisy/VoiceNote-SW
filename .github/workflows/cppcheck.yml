@@ -11,7 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  cppcheck:
+  cppcheck-amp0:
+    name: cppcheck amp0
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +24,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cppcheck
 
-      - name: Run cppcheck
+      - name: Run cppcheck amp0
         run: |
           mkdir -p reports
 
@@ -34,19 +35,69 @@ jobs:
             --std=c++17 \
             --language=c++ \
             --force \
-            --quiet \
+            --error-exitcode=1 \
+            --inline-suppr \
+            --xml \
+            --xml-version=2 \
+            --suppress=missingIncludeSystem \
+            voice_note_app_amp0/src \
+            2> reports/cppcheck_amp0.xml
+          status=$?
+
+          echo "===== cppcheck_amp0.xml ====="
+          cat reports/cppcheck_amp0.xml
+
+          exit $status
+
+      - name: Upload cppcheck amp0 report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-amp0-report
+          path: reports/cppcheck_amp0.xml
+
+  cppcheck-amp1:
+    name: cppcheck amp1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck amp1
+        run: |
+          mkdir -p reports
+
+          set +e
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --inconclusive \
+            --std=c++17 \
+            --language=c++ \
+            --force \
             --error-exitcode=1 \
             --inline-suppr \
             --xml \
             --xml-version=2 \
             --suppress=missingIncludeSystem \
             -ivoice_note_app_amp1/src/third_party \
-            voice_note_app_amp0/src \
             voice_note_app_amp1/src \
-            2> reports/cppcheck.xml
+            2> reports/cppcheck_amp1.xml
           status=$?
 
-          echo "===== cppcheck.xml ====="
-          cat reports/cppcheck.xml
+          echo "===== cppcheck_amp1.xml ====="
+          cat reports/cppcheck_amp1.xml
 
           exit $status
+
+      - name: Upload cppcheck amp1 report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-amp1-report
+          path: reports/cppcheck_amp1.xml
