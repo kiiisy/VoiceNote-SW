@@ -100,7 +100,8 @@ private:
 
     uint16_t current_play_index_{0};        // 現在選択中の再生リストindex
     uint16_t file_count_{0};                // 保持中のファイル数
-    char     file_names_[kMaxFiles][80]{};  // 再生リスト表示用ファイル名
+    char     file_names_[kMaxFiles][80]{};  // 再生要求に使う実ファイル名（/ と拡張子あり）
+    char     file_labels_[kMaxFiles][80]{}; // 再生リスト表示用の見た目名
 };
 
 }  // namespace gui

@@ -100,7 +100,6 @@ void PlayListHandler::OnDirEntry(uint32_t seq, uint16_t index, uint16_t total_hi
     }
 
     std::strncpy(list_dir_names_[list_dir_count_], e.name, sizeof(list_dir_names_[list_dir_count_]) - 1U);
-
     list_dir_names_[list_dir_count_][sizeof(list_dir_names_[list_dir_count_]) - 1U] = '\0';
 
     ++list_dir_count_;

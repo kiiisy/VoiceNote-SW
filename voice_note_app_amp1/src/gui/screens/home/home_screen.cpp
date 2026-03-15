@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <string.h>
 
+#include "screen_utility.h"
+
 namespace core1 {
 namespace gui {
 namespace {
@@ -104,7 +106,7 @@ void ApplyRootStyle(lv_obj_t *root)
     lv_obj_set_scrollbar_mode(root, LV_SCROLLBAR_MODE_OFF);
 
     // 背景（中央の黒帯）
-    lv_obj_set_style_bg_color(root, lv_color_hex(0x2B2B33), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(root, core1::gui::color::HomeBgBand(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_pad_all(root, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(root, 0, LV_PART_MAIN);
@@ -130,7 +132,7 @@ lv_obj_t *CreateCenteredLabel(lv_obj_t *parent, const char *text, const lv_font_
 {
     lv_obj_t *label = lv_label_create(parent);
     lv_label_set_text(label, text);
-    lv_obj_set_style_text_color(label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(label, font, 0);
     lv_obj_center(label);
 
@@ -150,8 +152,11 @@ void CreateCirclePlates(lv_obj_t *root, lv_coord_t W, lv_coord_t H, home_ui_t *u
     const lv_coord_t LEFT_X  = (W / 2 - gap / 2) - D;  // 左円の右端が中央 -gap / 2
     const lv_coord_t RIGHT_X = (W / 2 + gap / 2);      // 右円の左端が中央 +gap / 2
 
-    const lv_color_t REC_BG  = lv_color_hex(0xE65A5A);
-    const lv_color_t PLAY_BG = lv_color_hex(0xFF8600);
+    //const lv_color_t REC_BG = lv_color_hex(0xE65A5A);
+    const lv_color_t REC_BG = core1::gui::color::HomeRecPlate();
+
+    //const lv_color_t PLAY_BG = lv_color_hex(0xFF8600);
+    const lv_color_t PLAY_BG = core1::gui::color::HomePlayPlate();
 
     ui->btn_rec  = CreateCircleBtn(root, LEFT_X, Y, D, D, REC_BG);
     ui->btn_play = CreateCircleBtn(root, RIGHT_X, Y, D, D, PLAY_BG);

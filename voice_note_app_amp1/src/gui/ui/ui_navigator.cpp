@@ -11,6 +11,39 @@
 namespace core1 {
 namespace gui {
 
+namespace {
+
+/**
+ * @brief プレイリスト表示用の名前を作る（パス/拡張子を除去）
+ */
+void BuildDisplayName(const char *src, char *dst, size_t dst_size)
+{
+    if (!dst || (dst_size == 0U)) {
+        return;
+    }
+
+    dst[0] = '\0';
+    if (!src || src[0] == '\0') {
+        return;
+    }
+
+    const char *base = std::strrchr(src, '/');
+    if (base && base[1] != '\0') {
+        base += 1;
+    } else {
+        base = src;
+    }
+
+    std::snprintf(dst, dst_size, "%s", base);
+
+    char *dot = std::strrchr(dst, '.');
+    if (dot && dot != dst) {
+        *dot = '\0';
+    }
+}
+
+}  // namespace
+
 UiNavigator::UiNavigator(ScreenStore &store) : store_(store), transitions_(store, *this), bindings_(store, *this) {}
 
 void UiNavigator::Init()
@@ -154,14 +187,16 @@ void UiNavigator::SetPlayFileList(const char *names[kMaxFiles], uint16_t count)
 
     for (uint16_t i = 0; i < kMaxFiles; ++i) {
         file_names_[i][0] = '\0';
+        file_labels_[i][0] = '\0';
         if (i < count && names[i]) {
             std::snprintf(file_names_[i], sizeof(file_names_[i]), "%s", names[i]);
+            BuildDisplayName(file_names_[i], file_labels_[i], sizeof(file_labels_[i]));
         }
     }
 
     const char *view[kMaxFiles]{};
     for (uint16_t i = 0; i < kMaxFiles; ++i) {
-        view[i] = file_names_[i];
+        view[i] = file_labels_[i];
     }
     SetPlayListItems(&store_.GetPlayUi().file_sheet, view);
 
@@ -234,7 +269,7 @@ void UiNavigator::SetPlayView(bool playing)
 
 void UiNavigator::SetPlaybackProgress(uint32_t position_ms, uint32_t duration_ms)
 {
-    const char *name = file_names_[current_play_index_][0] ? file_names_[current_play_index_] : "no_file";
+    const char *name = file_labels_[current_play_index_][0] ? file_labels_[current_play_index_] : "no_file";
     gui::SetPlaySeek(&store_.GetPlayUi(), name, position_ms, duration_ms);
 }
 

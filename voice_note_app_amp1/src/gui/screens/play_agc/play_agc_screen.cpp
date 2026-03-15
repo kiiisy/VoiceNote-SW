@@ -50,7 +50,7 @@ void EnableScrollBubble(lv_obj_t *obj)
 void ApplyRootStyle(lv_obj_t *root)
 {
     // 背景（青）
-    lv_obj_set_style_bg_color(root, LV_COLOR_RGB_AS_BGR(0x0086FF), 0);
+    lv_obj_set_style_bg_color(root, core1::gui::color::PlayBg(), 0);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_pad_all(root, 0, 0);
     lv_obj_set_style_border_width(root, 0, 0);
@@ -136,7 +136,7 @@ lv_obj_t *CreateTitle(lv_obj_t *parent, const char *txt, const lv_font_t *font)
     lv_obj_t *lbl = lv_label_create(parent);
     lv_label_set_text(lbl, txt);
 
-    lv_obj_set_style_text_color(lbl, lv_color_white(), 0);
+    lv_obj_set_style_text_color(lbl, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(lbl, font, 0);
 
     lv_label_set_long_mode(lbl, LV_LABEL_LONG_DOT);
@@ -228,7 +228,7 @@ void UpdateSpeedValueLabel(play_agc_ui_t *ui)
     // α = 1/2^k
     const uint16_t DENOM = static_cast<uint16_t>(1u << K);  // k<=10ならOK
 
-    lv_label_set_text_fmt(ui->label_speed_value, "%s  (k=%d, α=1/%d)", GetSpeedName(K), K, DENOM);
+    lv_label_set_text_fmt(ui->label_speed_value, "%s  (k=%d, a=1/%d)", GetSpeedName(K), K, DENOM);
 }
 
 /**
@@ -284,10 +284,7 @@ int16_t Clamp16(int16_t vol, int16_t low, int16_t high)
  * @param den 分母（例：100）
  * @return 計算結果
  */
-lv_coord_t Percent(lv_coord_t v, uint16_t num, uint16_t den)
-{
-    return static_cast<lv_coord_t>((v * num) / den);
-}
+lv_coord_t Percent(lv_coord_t v, uint16_t num, uint16_t den) { return static_cast<lv_coord_t>((v * num) / den); }
 
 /**
  * @brief 「完了」ボタン押下時のイベント処理
@@ -471,7 +468,7 @@ lv_obj_t *CreateStepper(lv_obj_t *parent_row, lv_coord_t btn_w, lv_coord_t btn_h
 
     // value
     lv_obj_t *lbl_v = lv_label_create(cont);
-    lv_obj_set_style_text_color(lbl_v, lv_color_white(), 0);
+    lv_obj_set_style_text_color(lbl_v, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(lbl_v, &noto_sans_jp, 0);
     lv_label_set_text(lbl_v, "--");
     lv_obj_set_style_pad_left(lbl_v, 12, 0);
@@ -541,7 +538,7 @@ void CreateRowDistSlider(lv_obj_t *content, lv_coord_t W, play_agc_ui_t *ui)
     CreateTitle(row_title, "距離感度(mm)", &noto_sans_jp);
 
     ui->label_dist_value = lv_label_create(row_title);
-    lv_obj_set_style_text_color(ui->label_dist_value, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ui->label_dist_value, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ui->label_dist_value, &noto_sans_jp, 0);
     lv_label_set_text(ui->label_dist_value, "-- mm");
     EnableScrollBubble(ui->label_dist_value);
@@ -632,7 +629,7 @@ void CreateRowSpeedRoller(lv_obj_t *content, lv_coord_t W, play_agc_ui_t *ui)
     CreateTitle(row_title, "音量変化スピード", &noto_sans_jp);
 
     ui->label_speed_value = lv_label_create(row_title);
-    lv_obj_set_style_text_color(ui->label_speed_value, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ui->label_speed_value, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ui->label_speed_value, &noto_sans_jp, 0);
     lv_label_set_text(ui->label_speed_value, "--");
     EnableScrollBubble(ui->label_speed_value);
@@ -681,12 +678,12 @@ void CreateRowDone(lv_obj_t *content, lv_coord_t W, play_agc_ui_t *ui)
     core1::gui::KillScroll(ui->btn_done);
 
     lv_obj_set_style_radius(ui->btn_done, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(ui->btn_done, LV_COLOR_RGB_AS_BGR(0x6A5ACD), 0);
+    lv_obj_set_style_bg_color(ui->btn_done, core1::gui::color::DoneButtonBg(), 0);
     lv_obj_add_event_cb(ui->btn_done, OnDone, LV_EVENT_CLICKED, ui);
 
     lv_obj_t *lbl_done = lv_label_create(ui->btn_done);
     lv_label_set_text(lbl_done, "完了");
-    lv_obj_set_style_text_color(lbl_done, lv_color_white(), 0);
+    lv_obj_set_style_text_color(lbl_done, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(lbl_done, &noto_sans_jp, 0);
     lv_obj_center(lbl_done);
 

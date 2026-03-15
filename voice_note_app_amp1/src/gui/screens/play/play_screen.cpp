@@ -101,7 +101,7 @@ void ApplyRootStylePlay(lv_obj_t *root)
     core1::gui::KillScroll(root);
 
     // 背景（Frame3：青）
-    const lv_color_t BG_PLAY = LV_COLOR_RGB_AS_BGR(0x0086FF);
+    const lv_color_t BG_PLAY = core1::gui::color::PlayBg();
     lv_obj_set_style_bg_color(root, BG_PLAY, 0);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
@@ -142,7 +142,7 @@ lv_obj_t *CreateCenteredLabel(lv_obj_t *parent, const char *text, const lv_font_
 {
     lv_obj_t *label = lv_label_create(parent);
     lv_label_set_text(label, text);
-    lv_obj_set_style_text_color(label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(label, font, 0);
     lv_obj_center(label);
     return label;
@@ -176,7 +176,7 @@ void CreateMenuButton(lv_obj_t *root, play_ui_t *ui)
     lv_obj_align(ui->btn_menu, LV_ALIGN_TOP_LEFT, 10, 10);
 
     // 半透明の丸ボタン（黒っぽい）
-    ApplyCircleButtonStyle(ui->btn_menu, LV_COLOR_RGB_AS_BGR(0x1F1F27), LV_OPA_40);
+    ApplyCircleButtonStyle(ui->btn_menu, core1::gui::color::CircleButtonDark(), LV_OPA_40);
 
     // 指が乗った瞬間に反応させたい
     lv_obj_add_event_cb(ui->btn_menu, OnMenu, LV_EVENT_PRESSED, ui);
@@ -202,7 +202,7 @@ void CreateMainButton(lv_obj_t *root, play_ui_t *ui)
     lv_obj_set_size(ui->btn_main, 96, 96);
     lv_obj_align(ui->btn_main, LV_ALIGN_CENTER, 0, -15);
 
-    ApplyCircleButtonStyle(ui->btn_main, LV_COLOR_RGB_AS_BGR(0x1F1F27), LV_OPA_COVER);
+    ApplyCircleButtonStyle(ui->btn_main, core1::gui::color::CircleButtonDark(), LV_OPA_COVER);
 
     // 離したら確定にする
     lv_obj_add_event_cb(ui->btn_main, OnMain, LV_EVENT_RELEASED, ui);
@@ -225,12 +225,12 @@ void CreateBottomSlider(lv_obj_t *root, play_ui_t *ui)
 
     // 本体（薄め）
     lv_obj_set_style_bg_opa(ui->slider, LV_OPA_40, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(ui->slider, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(ui->slider, core1::gui::color::White(), LV_PART_MAIN);
     lv_obj_set_style_radius(ui->slider, LV_RADIUS_CIRCLE, LV_PART_MAIN);
 
     // インジケータ（濃い）
     lv_obj_set_style_bg_opa(ui->slider, LV_OPA_COVER, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(ui->slider, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(ui->slider, core1::gui::color::White(), LV_PART_INDICATOR);
     lv_obj_set_style_radius(ui->slider, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
 
     // つまみ（不要なら消す）
@@ -243,7 +243,7 @@ lv_obj_t *CreateTextLabel(lv_obj_t *parent, const char *text, const lv_font_t *f
 {
     lv_obj_t *label = lv_label_create(parent);
     lv_label_set_text(label, text);
-    lv_obj_set_style_text_color(label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(label, font, 0);
     return label;
 }

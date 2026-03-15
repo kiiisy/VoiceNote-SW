@@ -41,7 +41,7 @@ void EnableScrollBubble(lv_obj_t *obj)
  */
 void ApplyRootStyle(lv_obj_t *root)
 {
-    lv_obj_set_style_bg_color(root, LV_COLOR_RGB_AS_BGR(0x5A5AE6), 0);
+    lv_obj_set_style_bg_color(root, core1::gui::color::RecordBg(), 0);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
     lv_obj_set_style_pad_all(root, 0, 0);
@@ -108,7 +108,7 @@ lv_obj_t *CreateLabel(lv_obj_t *parent, const char *text, const lv_font_t *font)
 {
     lv_obj_t *label = lv_label_create(parent);
     lv_label_set_text(label, text);
-    lv_obj_set_style_text_color(label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(label, font, 0);
     return label;
 }
@@ -147,8 +147,8 @@ lv_obj_t *CreateDropDown(lv_obj_t *parent, const char *options, uint16_t selecte
     lv_dropdown_set_options(dd, options);
     lv_dropdown_set_selected(dd, selected);
     lv_obj_set_style_text_font(dd, &noto_sans_jp, 0);
-    lv_obj_set_style_text_color(dd, lv_color_black(), 0);
-    lv_obj_set_style_bg_color(dd, lv_color_white(), 0);
+    lv_obj_set_style_text_color(dd, core1::gui::color::Black(), 0);
+    lv_obj_set_style_bg_color(dd, core1::gui::color::White(), 0);
     lv_obj_set_style_border_width(dd, 0, 0);
     lv_obj_set_style_radius(dd, 10, 0);
     lv_obj_set_style_pad_left(dd, 10, 0);
@@ -156,7 +156,7 @@ lv_obj_t *CreateDropDown(lv_obj_t *parent, const char *options, uint16_t selecte
 
     lv_obj_t *list = lv_dropdown_get_list(dd);
     if (list) {
-        lv_obj_set_style_bg_color(list, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(list, core1::gui::color::White(), LV_PART_MAIN);
         lv_obj_set_style_text_font(list, &noto_sans_jp, LV_PART_MAIN);
     }
 
@@ -218,7 +218,7 @@ void CreateRowDone(lv_obj_t *content, rec_option_ui_t *ui)
     lv_obj_set_size(ui->btn_done, 110, 44);
     core1::gui::KillScroll(ui->btn_done);
     lv_obj_set_style_radius(ui->btn_done, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(ui->btn_done, LV_COLOR_RGB_AS_BGR(0x6A5ACD), 0);
+    lv_obj_set_style_bg_color(ui->btn_done, core1::gui::color::DoneButtonBg(), 0);
     lv_obj_add_event_cb(ui->btn_done, OnDone, LV_EVENT_RELEASED, ui);
 
     lv_obj_t *label = CreateLabel(ui->btn_done, "完了", &noto_sans_jp);

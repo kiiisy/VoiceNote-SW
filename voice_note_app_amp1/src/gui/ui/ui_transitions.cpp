@@ -140,14 +140,14 @@ void UiTransitions::HomeToRec()
     lv_obj_set_style_radius(ov_circle, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_border_width(ov_circle, 0, 0);
     lv_obj_set_style_shadow_width(ov_circle, 0, 0);
-    lv_obj_set_style_bg_color(ov_circle, LV_COLOR_RGB_AS_BGR(0x5A5AE6), 0);
+    lv_obj_set_style_bg_color(ov_circle, core1::gui::color::RecordBg(), 0);
     lv_obj_set_style_bg_opa(ov_circle, LV_OPA_COVER, 0);
     lv_obj_clear_flag(ov_circle, LV_OBJ_FLAG_SCROLLABLE);
 
     // ダミーREC文字
     lv_obj_t *ov_label = lv_label_create(layer);
     lv_label_set_text(ov_label, "REC");
-    lv_obj_set_style_text_color(ov_label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ov_label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ov_label, &lv_font_montserrat_28, 0);
     lv_obj_set_pos(ov_label, tx, ty);
 
@@ -233,13 +233,13 @@ void UiTransitions::HomeToPlay()
     lv_obj_set_style_radius(ov_circle, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_border_width(ov_circle, 0, 0);
     lv_obj_set_style_shadow_width(ov_circle, 0, 0);
-    lv_obj_set_style_bg_color(ov_circle, LV_COLOR_RGB_AS_BGR(0x0086FF), 0);
+    lv_obj_set_style_bg_color(ov_circle, core1::gui::color::PlayBg(), 0);
     lv_obj_set_style_bg_opa(ov_circle, LV_OPA_COVER, 0);
 
     // PLAY文字（ダミー）
     lv_obj_t *ov_label = lv_label_create(layer);
     lv_label_set_text(ov_label, "PLAY");
-    lv_obj_set_style_text_color(ov_label, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ov_label, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ov_label, &lv_font_montserrat_28, 0);
     lv_obj_set_pos(ov_label, tx, ty);
 
@@ -311,7 +311,7 @@ void UiTransitions::RecToHome()
     lv_obj_t *layer = lv_layer_top();
     lv_obj_t *ov    = lv_label_create(layer);
     lv_label_set_text(ov, "REC");
-    lv_obj_set_style_text_color(ov, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ov, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ov, &lv_font_montserrat_28, 0);
 
     // overlay開始位置
@@ -378,7 +378,7 @@ void UiTransitions::PlayToHome()
     lv_obj_t *layer = lv_layer_top();
     lv_obj_t *ov    = lv_label_create(layer);
     lv_label_set_text(ov, "PLAY");
-    lv_obj_set_style_text_color(ov, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ov, core1::gui::color::White(), 0);
     lv_obj_set_style_text_font(ov, &lv_font_montserrat_28, 0);
 
     // overlay開始位置

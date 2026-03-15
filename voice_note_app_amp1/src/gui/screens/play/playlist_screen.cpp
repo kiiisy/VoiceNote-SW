@@ -13,9 +13,12 @@ static constexpr lv_coord_t kSheetOpenY     = 70;
 static constexpr uint32_t   kAnimTimeMs     = 250;
 static constexpr uint8_t    kMaxOverlayOpa  = 15;
 static constexpr bool       kLogScrollDebug = false;
-static constexpr lv_coord_t kTapMoveThresh  = 10;
-static constexpr uint32_t   kTapBlockMs     = 180;
+static constexpr lv_coord_t kTapMoveThresh  = 4;
+static constexpr uint32_t   kTapBlockMs     = 300;
 static constexpr lv_coord_t kDragHitHeight  = 96;
+static constexpr lv_coord_t kListItemHeight = 34;
+static constexpr lv_coord_t kListItemGap    = 4;
+static constexpr lv_coord_t kListBottomPad  = 16;
 
 // --------------------------------------------------------
 // Utility
@@ -54,6 +57,25 @@ void OnListDebugEvent(lv_event_t *e)
 }
 
 lv_coord_t AbsCoord(lv_coord_t v) { return (v < 0) ? -v : v; }
+
+int16_t FindItemIndexFromTarget(playlsit_ui_t *ui, lv_obj_t *obj)
+{
+    if (!ui || !obj) {
+        return -1;
+    }
+
+    lv_obj_t *node = obj;
+    while (node) {
+        for (uint16_t i = 0; i < playlsit_ui_t::kMaxItems; ++i) {
+            if (ui->items[i] == node) {
+                return static_cast<int16_t>(i);
+            }
+        }
+        node = lv_obj_get_parent(node);
+    }
+
+    return -1;
+}
 
 void OnListScrollState(lv_event_t *e)
 {
@@ -249,7 +271,11 @@ void OnItemReleased(lv_event_t *e)
         return;
     }
 
-    if (ui->item_press_valid && indev) {
+    if (!ui->item_press_valid) {
+        return;
+    }
+
+    if (indev) {
         lv_point_t p{};
         lv_indev_get_point(indev, &p);
         if (AbsCoord(p.y - ui->item_press_point.y) > kTapMoveThresh ||
@@ -258,35 +284,46 @@ void OnItemReleased(lv_event_t *e)
         }
     }
 
-    for (uint16_t i = 0; i < playlsit_ui_t::kMaxItems; ++i) {
-        if (ui->items[i] == obj) {
-            ui->current_playing = i;
-            for (uint16_t j = 0; j < playlsit_ui_t::kMaxItems; ++j) {
-                if (j == i) {
-                    lv_obj_clear_flag(ui->bars[j], LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(ui->icons[j], LV_OBJ_FLAG_HIDDEN);
-                } else {
-                    lv_obj_add_flag(ui->bars[j], LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_add_flag(ui->icons[j], LV_OBJ_FLAG_HIDDEN);
-                }
-            }
+    const int16_t index = FindItemIndexFromTarget(ui, obj);
+    if ((index < 0) || (index >= static_cast<int16_t>(playlsit_ui_t::kMaxItems))) {
+        return;
+    }
 
-            if (ui->on_select) {
-                ui->on_select(i, ui->cb_user);
-            }
-
-            AnimateSheetTo(ui, ui->sheet_closed_y);
-            break;
+    ui->current_playing = index;
+    for (uint16_t j = 0; j < playlsit_ui_t::kMaxItems; ++j) {
+        if (j == static_cast<uint16_t>(index)) {
+            lv_obj_clear_flag(ui->bars[j], LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(ui->bars[j], LV_OBJ_FLAG_HIDDEN);
         }
     }
+
+    if (ui->on_select) {
+        ui->on_select(index, ui->cb_user);
+    }
+
+    AnimateSheetTo(ui, ui->sheet_closed_y);
 }
 
 }  // namespace
 
 void SetPlayListItems(playlsit_ui_t *ui, const char *names[playlsit_ui_t::kMaxItems])
 {
+    lv_coord_t visible_row = 0;
+
     for (uint16_t i = 0; i < playlsit_ui_t::kMaxItems; ++i) {
-        lv_label_set_text(ui->labels[i], names[i] ? names[i] : "");
+        const char *name   = names[i] ? names[i] : "";
+        const bool  hasRow = (name[0] != '\0');
+
+        lv_label_set_text(ui->labels[i], name);
+        if (hasRow) {
+            lv_obj_set_y(ui->items[i], visible_row * (kListItemHeight + kListItemGap));
+            lv_obj_clear_flag(ui->items[i], LV_OBJ_FLAG_HIDDEN);
+            ++visible_row;
+        } else {
+            // 実ファイルが無い行は丸ごと隠して、空枠/空ボタンを出さない
+            lv_obj_add_flag(ui->items[i], LV_OBJ_FLAG_HIDDEN);
+        }
     }
 }
 
@@ -297,10 +334,8 @@ void SetPlayListPlaying(playlsit_ui_t *ui, int16_t index)
     for (uint16_t i = 0; i < playlsit_ui_t::kMaxItems; ++i) {
         if (i == index) {
             lv_obj_clear_flag(ui->bars[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(ui->icons[i], LV_OBJ_FLAG_HIDDEN);
         } else {
             lv_obj_add_flag(ui->bars[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(ui->icons[i], LV_OBJ_FLAG_HIDDEN);
         }
     }
 }
@@ -320,7 +355,7 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     ui->overlay = lv_obj_create(parent);
     lv_obj_remove_style_all(ui->overlay);
     lv_obj_set_size(ui->overlay, lv_pct(100), lv_pct(100));
-    lv_obj_set_style_bg_color(ui->overlay, lv_color_black(), 0);
+    lv_obj_set_style_bg_color(ui->overlay, core1::gui::color::Black(), 0);
     lv_obj_set_style_bg_opa(ui->overlay, LV_OPA_0, 0);
     lv_obj_add_flag(ui->overlay, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui->overlay, LV_OBJ_FLAG_CLICKABLE);
@@ -335,7 +370,7 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     lv_obj_set_pos(ui->sheet, 0, ui->sheet_closed_y);
     lv_obj_set_style_radius(ui->sheet, 18, 0);
     lv_obj_set_style_border_width(ui->sheet, 0, 0);
-    lv_obj_set_style_bg_color(ui->sheet, LV_COLOR_RGB_AS_BGR(0x111827), 0);
+    lv_obj_set_style_bg_color(ui->sheet, core1::gui::color::PlaylistSheetBg(), 0);
 
     lv_obj_clear_flag(ui->sheet, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(ui->sheet, LV_DIR_NONE);
@@ -348,7 +383,7 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     //lv_obj_align(ui->handle, LV_ALIGN_BOTTOM_MID, 0, -4);
     lv_obj_align(ui->handle, LV_ALIGN_TOP_MID, 0, 6);
     lv_obj_set_style_radius(ui->handle, 12, 0);
-    lv_obj_set_style_bg_color(ui->handle, LV_COLOR_RGB_AS_BGR(0x111827), 0);
+    lv_obj_set_style_bg_color(ui->handle, core1::gui::color::PlaylistSheetBg(), 0);
     lv_obj_set_style_bg_opa(ui->handle, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(ui->handle, 0, 0);
     lv_obj_set_style_shadow_width(ui->handle, 0, 0);
@@ -359,7 +394,8 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     lv_obj_set_size(ui->list, lv_pct(100), 150);
     lv_obj_align(ui->list, LV_ALIGN_TOP_MID, 0, 34);
     lv_obj_set_style_pad_all(ui->list, 0, 0);
-    lv_obj_set_style_pad_row(ui->list, 4, 0);
+    lv_obj_set_style_pad_row(ui->list, kListItemGap, 0);
+    lv_obj_set_style_pad_bottom(ui->list, kListBottomPad, 0);
     lv_obj_set_style_border_width(ui->list, 0, 0);
     lv_obj_set_style_bg_opa(ui->list, LV_OPA_TRANSP, 0);
     lv_obj_add_flag(ui->list, LV_OBJ_FLAG_SCROLLABLE);
@@ -379,14 +415,12 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
     lv_obj_add_event_cb(ui->list, OnListScrollState, LV_EVENT_SCROLL_END, ui);
 
     // ---- list items ----
-    static constexpr uint16_t kItemHeight = 34;
-
     for (uint16_t i = 0; i < playlsit_ui_t::kMaxItems; ++i) {
         // 行コンテナ
         ui->items[i] = lv_obj_create(ui->list);
         lv_obj_remove_style_all(ui->items[i]);  // ★重要：テーマを剥がす（文字ズレ対策の本丸）
-        lv_obj_set_size(ui->items[i], lv_pct(100), kItemHeight);
-        lv_obj_align(ui->items[i], LV_ALIGN_TOP_LEFT, 0, i * (kItemHeight + 4));
+        lv_obj_set_size(ui->items[i], lv_pct(100), kListItemHeight);
+        lv_obj_align(ui->items[i], LV_ALIGN_TOP_LEFT, 0, i * (kListItemHeight + kListItemGap));
         lv_obj_clear_flag(ui->items[i], LV_OBJ_FLAG_SCROLLABLE);
         EnableScrollBubble(ui->items[i]);
 
@@ -408,28 +442,30 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
         lv_obj_remove_style_all(ui->bars[i]);
         lv_obj_set_size(ui->bars[i], 4, lv_pct(100));
         lv_obj_align(ui->bars[i], LV_ALIGN_LEFT_MID, 0, 0);
-        lv_obj_set_style_bg_color(ui->bars[i], LV_COLOR_RGB_AS_BGR(0x3B82F6), 0);
+        lv_obj_set_style_bg_color(ui->bars[i], core1::gui::color::PlaylistAccent(), 0);
         lv_obj_set_style_bg_opa(ui->bars[i], LV_OPA_COVER, 0);
+        lv_obj_add_flag(ui->bars[i], LV_OBJ_FLAG_HIDDEN);
 
         // 右側：固定幅コンテナ
-        static constexpr lv_coord_t kRightW = 24;
+        static constexpr lv_coord_t kRightW = 60;
         lv_obj_t                   *right   = lv_obj_create(ui->items[i]);
         lv_obj_remove_style_all(right);
         lv_obj_set_size(right, kRightW, lv_pct(100));
-        lv_obj_align(right, LV_ALIGN_RIGHT_MID, -6, 0);
+        lv_obj_align(right, LV_ALIGN_RIGHT_MID, 0, 0);
         lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_add_flag(right, LV_OBJ_FLAG_CLICKABLE);
         EnableScrollBubble(right);
 
         // 右側アイコン
         ui->icons[i] = lv_label_create(right);
         lv_label_set_text(ui->icons[i], LV_SYMBOL_PLAY);
-        lv_obj_set_style_text_color(ui->icons[i], LV_COLOR_RGB_AS_BGR(0x3B82F6), 0);
+        lv_obj_set_style_text_color(ui->icons[i], core1::gui::color::PlaylistAccent(), 0);
         lv_obj_center(ui->icons[i]);
 
         // ファイル名ラベル（★2行禁止：DOT + 幅固定）
         ui->labels[i] = lv_label_create(ui->items[i]);
         lv_label_set_text(ui->labels[i], "");
-        lv_obj_set_style_text_color(ui->labels[i], lv_color_white(), 0);
+        lv_obj_set_style_text_color(ui->labels[i], core1::gui::color::White(), 0);
         lv_label_set_long_mode(ui->labels[i], LV_LABEL_LONG_DOT);  // ★2行禁止の要
         lv_obj_align(ui->labels[i], LV_ALIGN_LEFT_MID, 12, 0);
 
@@ -441,8 +477,9 @@ void CreatePlayListUi(lv_obj_t *parent, playlsit_ui_t *ui)
         EnableScrollBubble(ui->bars[i]);
         EnableScrollBubble(ui->icons[i]);
 
-        lv_obj_add_event_cb(ui->items[i], OnItemPressed, LV_EVENT_PRESSED, ui);
-        lv_obj_add_event_cb(ui->items[i], OnItemReleased, LV_EVENT_SHORT_CLICKED, ui);
+        // 行全体はスクロール優先。再生は右端アイコン領域だけで受ける。
+        lv_obj_add_event_cb(right, OnItemPressed, LV_EVENT_PRESSED, ui);
+        lv_obj_add_event_cb(right, OnItemReleased, LV_EVENT_CLICKED, ui);
     }
 
     if (kLogScrollDebug) {
