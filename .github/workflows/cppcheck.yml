@@ -54,7 +54,7 @@ jobs:
             -efm="%f:%l:%c: %tarning: %m" \
             -efm="%f:%l:%c: %trror: %m" \
             -name="cppcheck-amp0" \
-            -reporter=github-pr-check \
+            -reporter=github-pr-review \
             -filter-mode=diff_context \
             -fail-on-error=true \
             < cppcheck_amp0.txt
@@ -102,7 +102,7 @@ jobs:
             -efm="%f:%l:%c: %tarning: %m" \
             -efm="%f:%l:%c: %trror: %m" \
             -name="cppcheck-amp1" \
-            -reporter=github-pr-check \
+            -reporter=github-pr-review \
             -filter-mode=diff_context \
             -fail-on-error=true \
             < cppcheck_amp1.txt
