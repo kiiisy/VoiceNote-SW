@@ -19,6 +19,13 @@
 namespace core0 {
 namespace app {
 
+/**
+ * @brief 再生要求を受け付けてSystemへ委譲する
+ *
+ * @param[in] wav_path 再生対象WAVパス
+ * @retval true  要求受理
+ * @retval false 引数不正またはデバウンス抑止
+ */
 bool AudioUiInputHandler::RequestPlay(const char *wav_path)
 {
     if (!wav_path) {
@@ -38,6 +45,16 @@ bool AudioUiInputHandler::RequestPlay(const char *wav_path)
     return sys_.EnqueuePlay(play_path_);
 }
 
+/**
+ * @brief 録音要求を受け付けてSystemへ委譲する
+ *
+ * @param[in] wav_path       録音出力WAVパス
+ * @param[in] sample_rate_hz サンプルレート
+ * @param[in] bits           ビット深度
+ * @param[in] ch             チャネル数
+ * @retval true  要求受理
+ * @retval false 引数不正またはデバウンス抑止
+ */
 bool AudioUiInputHandler::RequestRecord(const char *wav_path, uint32_t sample_rate_hz, uint16_t bits, uint16_t ch)
 {
     if (!wav_path) {
@@ -57,6 +74,15 @@ bool AudioUiInputHandler::RequestRecord(const char *wav_path, uint32_t sample_ra
     return sys_.EnqueueRecord(rec_path_, sample_rate_hz, bits, ch);
 }
 
+/**
+ * @brief 自動採番したファイル名で録音要求を発行する
+ *
+ * @param[in] sample_rate_hz サンプルレート
+ * @param[in] bits           ビット深度
+ * @param[in] ch             チャネル数
+ * @retval true  要求受理
+ * @retval false 要求失敗
+ */
 bool AudioUiInputHandler::RequestRecordAuto(uint32_t sample_rate_hz, uint16_t bits, uint16_t ch)
 {
     std::snprintf(rec_path_, sizeof(rec_path_), "/record_%05u.wav", (unsigned)next_rec_index_);
@@ -74,6 +100,12 @@ bool AudioUiInputHandler::RequestRecordAuto(uint32_t sample_rate_hz, uint16_t bi
     return true;
 }
 
+/**
+ * @brief 録音停止要求を発行する
+ *
+ * @retval true  要求受理
+ * @retval false 状態不一致で要求不可
+ */
 bool AudioUiInputHandler::RequestRecordStop()
 {
     if (sys_.GetState() != AudioState::Recording) {
@@ -83,6 +115,12 @@ bool AudioUiInputHandler::RequestRecordStop()
     return true;
 }
 
+/**
+ * @brief 再生一時停止要求を発行する
+ *
+ * @retval true  要求受理
+ * @retval false 状態不一致で要求不可
+ */
 bool AudioUiInputHandler::RequestPause()
 {
     if (sys_.GetState() != AudioState::Playing) {
@@ -92,6 +130,12 @@ bool AudioUiInputHandler::RequestPause()
     return true;
 }
 
+/**
+ * @brief 再生再開要求を発行する
+ *
+ * @retval true  要求受理
+ * @retval false 状態不一致で要求不可
+ */
 bool AudioUiInputHandler::RequestResume()
 {
     if (sys_.GetState() != AudioState::Paused) {

@@ -7,6 +7,7 @@
 #include "audio_dsp_config_handler.h"
 
 // プロジェクトライブラリ
+#include "arec_core.h"
 #include "acu_core.h"
 #include "logger_core.h"
 #include "mapper/agc_config_mapper.h"
@@ -14,12 +15,21 @@
 namespace core0 {
 namespace app {
 
+/**
+ * @brief DSP設定系IPCハンドラをAppServerへ登録する
+ */
 void AudioDspConfigHandler::BindHandlers()
 {
     server_.on_set_agc        = [&](const core::ipc::SetAgcPayload &p) -> int32_t { return OnSetAgc(p); };
     server_.on_set_rec_option = [&](const core::ipc::RecOptionPayload &p) -> int32_t { return OnSetRecOption(p); };
 }
 
+/**
+ * @brief AGC設定要求を適用する
+ *
+ * @param[in] p AGC設定ペイロード
+ * @retval 0 適用完了
+ */
 int32_t AudioDspConfigHandler::OnSetAgc(const core::ipc::SetAgcPayload &p)
 {
     auto cfg = ToAgcConfig(p);
@@ -30,6 +40,12 @@ int32_t AudioDspConfigHandler::OnSetAgc(const core::ipc::SetAgcPayload &p)
     return 0;
 }
 
+/**
+ * @brief 録音オプション設定要求を適用する
+ *
+ * @param[in] p 録音オプション設定ペイロード
+ * @retval 0 適用完了
+ */
 int32_t AudioDspConfigHandler::OnSetRecOption(const core::ipc::RecOptionPayload &p)
 {
     platform::Acu::DcCutConfig dc{};
@@ -48,12 +64,21 @@ int32_t AudioDspConfigHandler::OnSetRecOption(const core::ipc::RecOptionPayload 
     acu.SetDcCut(dc);
     acu.SetNoiseGate(ng);
 
-    LOGI("SetRecOption applied: dc_en=%u fc_q16=%ld ng_en=%u open_q15=%ld close_q15=%ld atk=%u rel=%u",
+    platform::Arec::Config arec{};
+    arec.threshold        = p.arec_threshold;
+    arec.window_shift     = p.arec_window_shift;
+    arec.pretrig_samples  = p.arec_pretrig_samples;
+    arec.required_windows = p.arec_required_windows;
+    arec.enable           = p.arec_enable != 0u;
+    platform::Arec::GetInstance().ApplyConfig(arec);
+
+    LOGI("SetRecOption applied: dc_en=%u fc_q16=%ld ng_en=%u open_q15=%ld close_q15=%ld atk=%u rel=%u arec_en=%u arec_th=%u arec_win=%u arec_pre=%u arec_req=%u",
          (unsigned)p.dc_enable, (long)p.dc_fc_q16, (unsigned)p.ng_enable, (long)p.ng_th_open_q15,
-         (long)p.ng_th_close_q15, (unsigned)p.ng_attack_ms, (unsigned)p.ng_release_ms);
+         (long)p.ng_th_close_q15, (unsigned)p.ng_attack_ms, (unsigned)p.ng_release_ms, (unsigned)p.arec_enable,
+         (unsigned)p.arec_threshold, (unsigned)p.arec_window_shift, (unsigned)p.arec_pretrig_samples,
+         (unsigned)p.arec_required_windows);
     return 0;
 }
 
 }  // namespace app
 }  // namespace core0
-

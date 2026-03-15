@@ -10,6 +10,7 @@
 #include "acu_core.h"
 #include "addr_map.h"
 #include "agc_core.h"
+#include "arec_core.h"
 #include "audio_format.h"
 #include "audio_formatter_core.h"
 #include "audio_formatter_rx.h"
@@ -65,12 +66,12 @@ bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sR
         return false;
     }
 
-    if (i2s_rx.Init({kI2sRxBaseAddr, I2sMuxBaseAddr, kI2sRxIrqId}) != XST_SUCCESS) {
+    if (i2s_rx.Init({kI2sRxBaseAddr, kI2sMuxBaseAddr, kI2sRxIrqId}) != XST_SUCCESS) {
         LOGE("I2s RX Initialization Failed");
         return false;
     }
 
-    if (i2s_tx.Init({kI2sTxBaseAddr, I2sMuxBaseAddr, kI2sTxIrqId}) != XST_SUCCESS) {
+    if (i2s_tx.Init({kI2sTxBaseAddr, kI2sMuxBaseAddr, kI2sTxIrqId}) != XST_SUCCESS) {
         LOGE("I2s TX Initialization Failed");
         return false;
     }
@@ -83,6 +84,13 @@ bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sR
     acu.Init(kAcuBaseAddr);
     acu.ApplyDefault();
 
+    auto &arec = platform::Arec::GetInstance();
+    if (arec.Init(kArecBaseAddr, kArecIrqId) != XST_SUCCESS) {
+        LOGE("Arec Initialization Failed");
+        return false;
+    }
+    arec.ApplyDefault();
+
     return true;
 }
 
@@ -91,6 +99,8 @@ bool Pipeline::Init(uintptr_t base_addr, platform::I2sTx &i2s_tx, platform::I2sR
  */
 void Pipeline::Deinit()
 {
+    platform::Arec::GetInstance().Deinit();
+
     if (rx_) {
         rx_->Deinit();
     }

@@ -48,14 +48,6 @@ enum class AudioAction : uint16_t
     StartRecord,
     StopRecord,
 
-    // notifications
-    EmitPlaybackStarted,
-    EmitPlaybackPaused,
-    EmitPlaybackResumed,
-    EmitPlaybackStopped,
-    EmitRecordStarted,
-    EmitRecordStopped,
-
     Max
 };
 
@@ -74,6 +66,7 @@ public:
     AudioState GetState() const { return st_; }
 
     // eventを入れるとnextとactionsが返る（最大2個）
+    // ただ1つのactionしか使ってないので2個持てるようにしなくてもいいけどな。。。
     AudioTransition Dispatch(AudioFsmEvent event)
     {
         const auto table = kTable[static_cast<uint32_t>(st_)][static_cast<uint32_t>(event)];
@@ -86,47 +79,47 @@ public:
 private:
     AudioState st_{AudioState::Idle};
 
-    static constexpr AudioTransition kTable[static_cast<uint32_t>(AudioState::Max)][static_cast<uint32_t>(
-        AudioFsmEvent::Max)] = {
-        // =========================
-        // Idle
-        // =========================
-        {
-         /* UiPlayPressed */ {AudioState::Playing, AudioAction::StartPlayback, AudioAction::EmitPlaybackStarted},
-         /* UiRecPressed  */ {AudioState::Recording, AudioAction::StartRecord, AudioAction::EmitRecordStarted},
-         /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::None},
-         /* RecEnded      */ {AudioState::Idle, AudioAction::None, AudioAction::None},
-         },
+    static constexpr AudioTransition
+        kTable[static_cast<uint32_t>(AudioState::Max)][static_cast<uint32_t>(AudioFsmEvent::Max)] = {
+            // =========================
+            // Idle
+            // =========================
+            {
+             /* UiPlayPressed */ {AudioState::Playing, AudioAction::StartPlayback, AudioAction::None},
+             /* UiRecPressed  */ {AudioState::Recording, AudioAction::StartRecord, AudioAction::None},
+             /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::None},
+             /* RecEnded      */ {AudioState::Idle, AudioAction::None, AudioAction::None},
+             },
 
-        // =========================
-        // Playing
-        // =========================
-        {
-         /* UiPlayPressed */ {AudioState::Paused, AudioAction::PausePlayback, AudioAction::EmitPlaybackPaused},
-         /* UiRecPressed  */ {AudioState::Playing, AudioAction::None, AudioAction::None},
-         /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::EmitPlaybackStopped},
-         /* RecEnded      */ {AudioState::Playing, AudioAction::None, AudioAction::None},
-         },
+            // =========================
+            // Playing
+            // =========================
+            {
+             /* UiPlayPressed */ {AudioState::Paused, AudioAction::PausePlayback, AudioAction::None},
+             /* UiRecPressed  */ {AudioState::Playing, AudioAction::None, AudioAction::None},
+             /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::None},
+             /* RecEnded      */ {AudioState::Playing, AudioAction::None, AudioAction::None},
+             },
 
-        // =========================
-        // Paused
-        // =========================
-        {
-         /* UiPlayPressed */ {AudioState::Playing, AudioAction::ResumePlayback, AudioAction::EmitPlaybackResumed},
-         /* UiRecPressed  */ {AudioState::Paused, AudioAction::None, AudioAction::None},
-         /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::EmitPlaybackStopped},
-         /* RecEnded      */ {AudioState::Paused, AudioAction::None, AudioAction::None},
-         },
+            // =========================
+            // Paused
+            // =========================
+            {
+             /* UiPlayPressed */ {AudioState::Playing, AudioAction::ResumePlayback, AudioAction::None},
+             /* UiRecPressed  */ {AudioState::Paused, AudioAction::None, AudioAction::None},
+             /* PbEnded       */ {AudioState::Idle, AudioAction::None, AudioAction::None},
+             /* RecEnded      */ {AudioState::Paused, AudioAction::None, AudioAction::None},
+             },
 
-        // =========================
-        // Recording
-        // =========================
-        {
-         /* UiPlayPressed */ {AudioState::Recording, AudioAction::None, AudioAction::None},
-         /* UiRecPressed  */ {AudioState::Recording, AudioAction::StopRecord, AudioAction::None},
-         /* PbEnded       */ {AudioState::Recording, AudioAction::None, AudioAction::None},
-         /* RecEnded      */ {AudioState::Idle, AudioAction::None, AudioAction::EmitRecordStopped},
-         },
+            // =========================
+            // Recording
+            // =========================
+            {
+             /* UiPlayPressed */ {AudioState::Recording, AudioAction::None, AudioAction::None},
+             /* UiRecPressed  */ {AudioState::Recording, AudioAction::StopRecord, AudioAction::None},
+             /* PbEnded       */ {AudioState::Recording, AudioAction::None, AudioAction::None},
+             /* RecEnded      */ {AudioState::Idle, AudioAction::None, AudioAction::None},
+             },
     };
 };
 
