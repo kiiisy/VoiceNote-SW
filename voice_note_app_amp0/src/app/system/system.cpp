@@ -33,6 +33,8 @@ bool System::Init()
 {
     LOG_SCOPE();
 
+    int filled = 0;
+
     notification_publisher_.Reset();
     fsm_ctx_.Reset();
 
