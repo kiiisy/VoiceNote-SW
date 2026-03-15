@@ -9,9 +9,11 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
-  cppcheck:
+  cppcheck-amp0:
+    name: cppcheck amp0
     runs-on: ubuntu-latest
 
     steps:
@@ -23,10 +25,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cppcheck
 
-      - name: Run cppcheck
-        run: |
-          mkdir -p reports
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
 
+      - name: Run cppcheck amp0
+        run: |
           cppcheck \
             --enable=warning,style,performance,portability \
             --inconclusive \
@@ -34,19 +37,72 @@ jobs:
             --language=c++ \
             --force \
             --quiet \
-            --error-exitcode=1 \
             --inline-suppr \
-            --xml \
-            --xml-version=2 \
+            --template=gcc \
+            --suppress=missingIncludeSystem \
+            voice_note_app_amp0/src \
+            2> cppcheck_amp0.txt
+
+          echo "===== cppcheck_amp0.txt ====="
+          cat cppcheck_amp0.txt
+
+      - name: Run reviewdog (amp0)
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog \
+            -efm="%f:%l:%c: %tarning: %m" \
+            -efm="%f:%l:%c: %trror: %m" \
+            -name="cppcheck-amp0" \
+            -reporter=github-pr-check \
+            -filter-mode=diff_context \
+            -fail-on-error=true \
+            < cppcheck_amp0.txt
+
+  cppcheck-amp1:
+    name: cppcheck amp1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
+
+      - name: Run cppcheck amp1
+        run: |
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --inconclusive \
+            --std=c++17 \
+            --language=c++ \
+            --force \
+            --quiet \
+            --inline-suppr \
+            --template=gcc \
             --suppress=missingIncludeSystem \
             -ivoice_note_app_amp1/src/third_party \
-            voice_note_app_amp0/src \
             voice_note_app_amp1/src \
-            2> reports/cppcheck.xml
+            2> cppcheck_amp1.txt
 
-      - name: Upload cppcheck report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cppcheck-report
-          path: reports/cppcheck.xml
+          echo "===== cppcheck_amp1.txt ====="
+          cat cppcheck_amp1.txt
+
+      - name: Run reviewdog (amp1)
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog \
+            -efm="%f:%l:%c: %tarning: %m" \
+            -efm="%f:%l:%c: %trror: %m" \
+            -name="cppcheck-amp1" \
+            -reporter=github-pr-check \
+            -filter-mode=diff_context \
+            -fail-on-error=true \
+            < cppcheck_amp1.txt
