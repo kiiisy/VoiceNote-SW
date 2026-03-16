@@ -217,14 +217,19 @@ static_assert(sizeof(ListDirPayload) <= kPayloadBytes);
  */
 struct RecOptionPayload
 {
-    uint8_t dc_enable;      // DCカット有効無効
-    uint8_t ng_enable;      // ノイズゲート有効無効
-    uint8_t reserved0[2];   // 予約
-    int32_t dc_fc_q16;      // DCカットオフ周波数(Hz, Q16)
-    int32_t ng_th_open_q15; // ノイズゲート開閾値(Q15)
-    int32_t ng_th_close_q15;// ノイズゲート閉閾値(Q15)
-    uint16_t ng_attack_ms;  // アタック時間[ms]
-    uint16_t ng_release_ms; // リリース時間[ms]
+    uint8_t  dc_enable;               // DCカット有効無効
+    uint8_t  ng_enable;               // ノイズゲート有効無効
+    uint8_t  arec_enable;             // AREC有効無効
+    uint8_t  arec_window_shift;       // AREC窓長シフト値
+    int32_t  dc_fc_q16;               // DCカットオフ周波数(Hz, Q16)
+    int32_t  ng_th_open_q15;          // ノイズゲート開閾値(Q15)
+    int32_t  ng_th_close_q15;         // ノイズゲート閉閾値(Q15)
+    uint16_t ng_attack_ms;            // アタック時間[ms]
+    uint16_t ng_release_ms;           // リリース時間[ms]
+    uint16_t arec_threshold;          // ARECしきい値
+    uint16_t arec_pretrig_samples;    // ARECプリトリガ保持数
+    uint8_t  arec_required_windows;   // AREC連続成立窓数
+    uint8_t  reserved0[3];            // 予約
 };
 static_assert(sizeof(RecOptionPayload) <= kPayloadBytes);
 

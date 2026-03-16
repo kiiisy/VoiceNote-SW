@@ -40,6 +40,7 @@ struct record_ui_t
 
     lv_obj_t *btn_main;    // 中央のメインボタン
     lv_obj_t *label_main;  // メインボタン内の表示（▶/■）
+    lv_obj_t *label_status;  // メインボタン周辺の状態表示
     lv_obj_t *slider;      // 下部スライダー
     lv_obj_t *label_pos;   // 録音経過
     lv_obj_t *label_rem;   // 残り時間
@@ -58,6 +59,8 @@ void SetRecordBackCallback(record_ui_t *ui, nav_cb_t on_back, void *user);
 void SetRecordMainCallback(record_ui_t *ui, nav_cb_t on_main, void *user);
 void SetRecordViewState(record_ui_t *ui, record_view_state_t st);
 void SetRecordSeek(record_ui_t *ui, uint32_t captured_ms, uint32_t target_ms);
+void SetRecordStatusText(record_ui_t *ui, const char *text);
+void SetRecordMainBlink(record_ui_t *ui, bool enable);
 
 }  // namespace gui
 }  // namespace core1

@@ -15,6 +15,9 @@
 namespace core0 {
 namespace app {
 
+/**
+ * @brief System通知を処理し、必要なIPCステータス送信を実行する
+ */
 void AudioIpcStatusHandler::NotifyStatus()
 {
     AudioNotification noti;
@@ -41,6 +44,9 @@ void AudioIpcStatusHandler::NotifyStatus()
     SendStatusRegularly();
 }
 
+/**
+ * @brief 再生ステータスをIPCへ送信する
+ */
 void AudioIpcStatusHandler::SendPlaybackStatus()
 {
     core::ipc::PlaybackStatusPayload st{};
@@ -49,6 +55,9 @@ void AudioIpcStatusHandler::SendPlaybackStatus()
     }
 }
 
+/**
+ * @brief 録音ステータスをIPCへ送信する
+ */
 void AudioIpcStatusHandler::SendRecordStatus()
 {
     core::ipc::RecordStatusPayload st{};
@@ -57,6 +66,9 @@ void AudioIpcStatusHandler::SendRecordStatus()
     }
 }
 
+/**
+ * @brief 再生/録音がアクティブな間、ステータスを定期送信する
+ */
 void AudioIpcStatusHandler::SendStatusRegularly()
 {
     if (sys_.IsPlaybackActive()) {

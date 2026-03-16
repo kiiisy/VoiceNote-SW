@@ -17,7 +17,7 @@ void AudioEventBus::Reset()
 
 void AudioEventBus::SetEvent(AudioFsmEvent ev)
 {
-    // 単一スロットなので最新イベントで上書きする。
+    // 単一スロットなので最新イベントで上書きする
     has_event_ = true;
     event_     = ev;
 }

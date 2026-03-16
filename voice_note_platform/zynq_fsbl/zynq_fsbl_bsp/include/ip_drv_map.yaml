@@ -1,6 +1,9 @@
 agc_0:
 - agc
 - None
+arec_0:
+- arec
+- None
 audio_clean_up_0:
 - audio_clean_up
 - audio_clean_up

@@ -152,6 +152,7 @@ lib_folder: lib
 libsrc_folder: libsrc
 drv_info:
   agc_0: None
+  arec_0: None
   audio_clean_up_0:
     driver: audio_clean_up
     ip_name: audio_clean_up
@@ -160,74 +161,31 @@ drv_info:
     driver: audio_formatter
     ip_name: audio_formatter
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/audio_formatter_v1_3
-    examples:
-      xaudioformatter_selftest_example.c: []
-      xaudioformatter_intr_example.c: []
   axi_gpio_0:
     driver: gpio
     ip_name: axi_gpio
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/gpio_v4_12
-    examples:
-      xgpio_example.c: []
-      xgpio_intr_tapp_example.c: []
-      xgpio_low_level_example.c: []
-      xgpio_tapp_example.c: []
   axi_gpio_1:
     driver: gpio
     ip_name: axi_gpio
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/gpio_v4_12
-    examples:
-      xgpio_example.c: []
-      xgpio_intr_tapp_example.c: []
-      xgpio_low_level_example.c: []
-      xgpio_tapp_example.c: []
   axi_iic_0:
     driver: iic
     ip_name: axi_iic
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/iic_v3_12
-    examples:
-      xiic_eeprom_example.c: []
-      xiic_dynamic_eeprom_example.c: []
-      xiic_low_level_dynamic_eeprom_example.c: []
-      xiic_low_level_eeprom_example.c: []
-      xiic_low_level_tempsensor_example.c: []
-      xiic_multi_master_example.c: []
-      xiic_repeated_start_example.c: []
-      xiic_selftest_example.c: []
-      xiic_slave_example.c: []
-      xiic_tempsensor_example.c: []
-      xiic_tenbitaddr_example.c: []
   axi_iic_1:
     driver: iic
     ip_name: axi_iic
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/iic_v3_12
-    examples:
-      xiic_eeprom_example.c: []
-      xiic_dynamic_eeprom_example.c: []
-      xiic_low_level_dynamic_eeprom_example.c: []
-      xiic_low_level_eeprom_example.c: []
-      xiic_low_level_tempsensor_example.c: []
-      xiic_multi_master_example.c: []
-      xiic_repeated_start_example.c: []
-      xiic_selftest_example.c: []
-      xiic_slave_example.c: []
-      xiic_tempsensor_example.c: []
-      xiic_tenbitaddr_example.c: []
   i2s_clock_mux_0: None
   i2s_receiver_0:
     driver: i2srx
     ip_name: i2s_receiver
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/i2srx_v2_3
-    examples:
-      xi2srx_selftest_example.c: []
-      xi2srx_intr_example.c: []
   i2s_transmitter_0:
     driver: i2stx
     ip_name: i2s_transmitter
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/i2stx_v2_3
-    examples:
-      xi2stx_selftest_example.c: []
-      xi2stx_intr_example.c: []
   ps7_afi_0: None
   ps7_afi_1: None
   ps7_afi_2: None
@@ -241,35 +199,21 @@ drv_info:
     driver: devcfg
     ip_name: ps7_dev_cfg
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/devcfg_v3_8
-    examples:
-      xdevcfg_interrupt_example.c: []
-      xdevcfg_polled_example.c: []
-      xdevcfg_reg_readback_example.c: []
-      xdevcfg_selftest_example.c: []
   ps7_dma_ns: None
   ps7_dma_s:
     driver: dmaps
     ip_name: ps7_dma
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/dmaps_v2_11
-    examples:
-      xdmaps_example_w_intr.c: []
   ps7_globaltimer_0: None
   ps7_gpio_0:
     driver: gpiops
     ip_name: ps7_gpio
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/gpiops_v3_13
-    examples:
-      xgpiops_intr_example.c: []
-      xgpiops_polled_example.c: []
   ps7_gpv_0: None
   ps7_intc_dist_0:
     driver: scugic
     ip_name: ps7_intc_dist
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/scugic_v5_4
-    examples:
-      xscugic_example.c: []
-      xscugic_low_level_example.c: []
-      xscugic_tapp_example.c: []
   ps7_iop_bus_config_0: None
   ps7_ocmc_0: None
   ps7_pl310_0: None
@@ -278,85 +222,36 @@ drv_info:
     driver: qspips
     ip_name: ps7_qspi
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/qspips_v3_13
-    examples:
-      xqspips_flash_intr_example.c: []
-      xqspips_flash_polled_example.c: []
-      xqspips_dual_flash_lqspi_example.c: []
-      xqspips_dual_flash_stack_lqspi_example.c: []
-      xqspips_flash_lqspi_example.c: []
-      xqspips_g128_flash_example.c: []
-      xqspips_selftest_example.c: []
   ps7_scuc_0: None
   ps7_scutimer_0:
     driver: scutimer
     ip_name: ps7_scutimer
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/scutimer_v2_6
-    examples:
-      xscutimer_polled_example.c: []
-      xscutimer_intr_example.c: []
   ps7_scuwdt_0:
     driver: scuwdt
     ip_name: ps7_scuwdt
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/scuwdt_v2_6
-    examples:
-      xscuwdt_intr_example.c: []
-      xscuwdt_polled_example.c: []
   ps7_sd_0:
     driver: sdps
     ip_name: ps7_sdio
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/sdps_v4_4
-    examples:
-      xsdps_raw_example.c: []
   ps7_slcr_0: None
   ps7_spi_1:
     driver: spips
     ip_name: ps7_spi
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/spips_v3_11
-    examples:
-      xspips_eeprom_intr_example.c: []
-      xspips_eeprom_polled_example.c: []
-      xspips_flash_intr_example.c: []
-      xspips_flash_polled_example.c: []
-      xspips_selftest_example.c: []
-      xspips_slave_polled_example.c: []
-      xspips_tpm_polled_example.c: []
   ps7_uart_1:
     driver: uartps
     ip_name: ps7_uart
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/uartps_v3_15
-    examples:
-      xuartps_hello_world_example.c: []
-      xuartps_intr_example.c: []
-      xuartps_low_echo_example.c: []
-      xuartps_polled_example.c: []
-      xuartps_selftest_example.c: []
   ps7_usb_0:
     driver: usbps
     ip_name: ps7_usb
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/usbps_v2_9
-    examples:
-      xusbps_intr_example.c:
-      - xusbps_class_storage.c
-      - xusbps_class_storage.h
-      - xusbps_ch9_storage.c
-      - xusbps_ch9_storage.h
-      - xusbps_ch9.c
-      - xusbps_ch9.h
-      xusbps_audio_example.c:
-      - xusbps_ch9_audio.c
-      - xusbps_ch9_audio.h
-      - xusbps_ch9.c
-      - xusbps_ch9.h
-      - xusbps_class_audio.c
-      - xusbps_class_audio.h
-      - xusbps_audiodata.h
   ps7_xadc_0:
     driver: xadcps
     ip_name: ps7_xadc
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/XilinxProcessorIPLib/drivers/xadcps_v2_7
-    examples:
-      xadcps_intr_example.c: []
-      xadcps_polled_printf_example.c: []
 lib_info:
   xiltimer:
     path: /home/user/Xilinx/Vitis/2024.2/data/embeddedsw/lib/sw_services/xiltimer_v2_1

@@ -37,6 +37,7 @@ private:
     gui::LvglController *gui_{nullptr};
     AppEventBus         *event_bus_{nullptr};
     uint8_t              last_pb_state_{0xFF};
+    uint8_t              last_rec_state_{0xFF};
 };
 
 }  // namespace app

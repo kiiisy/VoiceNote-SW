@@ -19,7 +19,7 @@ namespace app {
 class AudioDspConfigHandler final
 {
 public:
-    explicit AudioDspConfigHandler(core0::ipc::AppServer &server) : server_(server) {}
+    explicit AudioDspConfigHandler(ipc::AppServer &server) : server_(server) {}
 
     void BindHandlers();
 
@@ -27,10 +27,8 @@ private:
     int32_t OnSetAgc(const core::ipc::SetAgcPayload &p);
     int32_t OnSetRecOption(const core::ipc::RecOptionPayload &p);
 
-private:
-    core0::ipc::AppServer &server_;
+    ipc::AppServer &server_;
 };
 
 }  // namespace app
 }  // namespace core0
-

@@ -17,8 +17,9 @@ inline constexpr uint32_t kI2sRxBaseAddr          = XPAR_XI2SRX_0_BASEADDR;
 inline constexpr uint32_t kI2sTxBaseAddr          = XPAR_XI2STX_0_BASEADDR;
 inline constexpr uint32_t kAgcBaseAddr            = XPAR_AGC_0_BASEADDR;
 inline constexpr uint32_t kAcuBaseAddr            = XPAR_XAUDIO_CLEAN_UP_0_BASEADDR;
+inline constexpr uint32_t kArecBaseAddr           = XPAR_AREC_0_BASEADDR;
 inline constexpr uint32_t kGicBaseAddr            = XPAR_XSCUGIC_0_BASEADDR;
-inline constexpr uint32_t PsSpiBaseAddr           = XPAR_XSPIPS_0_BASEADDR;
-inline constexpr uint32_t I2sMuxBaseAddr          = XPAR_I2S_CLOCK_MUX_0_BASEADDR;
+inline constexpr uint32_t kPsSpiBaseAddr          = XPAR_XSPIPS_0_BASEADDR;
+inline constexpr uint32_t kI2sMuxBaseAddr         = XPAR_I2S_CLOCK_MUX_0_BASEADDR;
 
 }  // namespace core0

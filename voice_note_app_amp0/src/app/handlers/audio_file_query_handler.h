@@ -21,20 +21,18 @@ class System;
 class AudioFileQueryHandler final
 {
 public:
-    AudioFileQueryHandler(core0::ipc::AppServer &server, System &sys) : server_(server), sys_(sys) {}
+    AudioFileQueryHandler(ipc::AppServer &server, System &sys) : server_(server), sys_(sys) {}
 
     void BindHandlers();
 
 private:
     int32_t OnListDir(const core::ipc::ListDirPayload &p, uint32_t seq);
 
-private:
     static constexpr uint16_t kMaxDirEntriesPerReq = 64;
 
-    core0::ipc::AppServer &server_;
-    System           &sys_;
+    ipc::AppServer &server_;
+    System         &sys_;
 };
 
 }  // namespace app
 }  // namespace core0
-

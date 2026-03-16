@@ -100,6 +100,7 @@ void LvglController::SetRecordProgress(uint32_t captured_ms, uint32_t target_ms)
 void LvglController::SetPlaybackUiState(uint8_t state) { nav_.SetPlaybackUiState(state); }
 
 void LvglController::SetRecordUiState(uint8_t state) { nav_.SetRecordUiState(state); }
+void LvglController::SetRecordStatusText(const char *text) { nav_.SetRecordStatusText(text); }
 
 void LvglController::SetPlayFileList(const char *names[UiNavigator::kMaxFiles], uint16_t count)
 {

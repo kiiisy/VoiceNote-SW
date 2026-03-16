@@ -14,6 +14,9 @@
 namespace core0 {
 namespace app {
 
+/**
+ * @brief ファイルクエリ系IPCハンドラをAppServerへ登録する
+ */
 void AudioFileQueryHandler::BindHandlers()
 {
     server_.on_list_dir = [&](const core::ipc::ListDirPayload &p, uint32_t seq) -> int32_t {
@@ -21,6 +24,14 @@ void AudioFileQueryHandler::BindHandlers()
     };
 }
 
+/**
+ * @brief WAVファイル一覧要求を処理する
+ *
+ * @param[in] p   一覧取得対象ディレクトリを含むペイロード
+ * @param[in] seq 応答のシーケンス番号
+ * @retval 0  一覧送信成功
+ * @retval -1 一覧送信失敗または実行不可
+ */
 int32_t AudioFileQueryHandler::OnListDir(const core::ipc::ListDirPayload &p, uint32_t seq)
 {
     if (sys_.IsPlaybackActive() || sys_.IsRecordActive()) {
@@ -49,4 +60,3 @@ int32_t AudioFileQueryHandler::OnListDir(const core::ipc::ListDirPayload &p, uin
 
 }  // namespace app
 }  // namespace core0
-

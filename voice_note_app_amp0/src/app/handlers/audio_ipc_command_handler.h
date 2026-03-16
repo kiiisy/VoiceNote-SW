@@ -21,7 +21,7 @@ class AudioUiInputHandler;
 class AudioIpcCommandHandler final
 {
 public:
-    AudioIpcCommandHandler(core0::ipc::AppServer &server, AudioUiInputHandler &ui_input_handler)
+    AudioIpcCommandHandler(ipc::AppServer &server, AudioUiInputHandler &ui_input_handler)
         : server_(server), ui_input_handler_(ui_input_handler)
     {
     }
@@ -35,9 +35,8 @@ private:
     int32_t OnRecStart(const core::ipc::RecStartPayload &p);
     int32_t OnRecStop();
 
-private:
-    core0::ipc::AppServer &server_;
-    AudioUiInputHandler   &ui_input_handler_;
+    ipc::AppServer      &server_;
+    AudioUiInputHandler &ui_input_handler_;
 };
 
 }  // namespace app

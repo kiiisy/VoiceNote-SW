@@ -16,6 +16,7 @@
 #include "xparameters.h"
 
 // プロジェクトライブラリ
+#include "arec_core.h"
 #include "i2s_rx_core.h"
 #include "i2s_tx_core.h"
 #include "logger_core.h"
@@ -70,6 +71,7 @@ bool System::Init()
 void System::Deinit()
 {
     // HW
+    StopAutoRecordWait();
     pb_ctrl_.Reset();
     rec_ctrl_.Reset();
     pipeline_.Deinit();
@@ -236,6 +238,10 @@ void System::ProcessPlayback()
  */
 void System::ProcessRecord()
 {
+    if (arec_waiting_) {
+        ProcessAutoRecordWait();
+    }
+
     if (rec_ctrl_.IsActive()) {
         rec_ctrl_.Process();
     }
@@ -250,11 +256,14 @@ void System::ProcessRecord()
             case RecordController::Event::kStopped:
                 notification_publisher_.Publish(AudioNotification::Type::kRecordStopped,
                                                 static_cast<int32_t>(Error::kNone));
+                StopAutoRecordWait();
                 i2s_rx_.Disable();
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
                 break;
             case RecordController::Event::kError:
                 notification_publisher_.Publish(AudioNotification::Type::kError, rev.err);
+                StopAutoRecordWait();
+                i2s_rx_.Disable();
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
                 break;
             default:
@@ -314,13 +323,10 @@ void System::ExecuteFsmAction(AudioAction action)
         }
 
         case AudioAction::StartRecord: {
-            i2s_rx_.Enable();
-
-            bool result = rec_ctrl_.Start(fsm_ctx_.params.rec_path, fsm_ctx_.params.sample_rate_hz,
-                                          fsm_ctx_.params.bits, fsm_ctx_.params.ch);
+            const bool use_auto_record = platform::Arec::GetInstance().IsAutoRecordModeEnabled();
+            const bool result          = use_auto_record ? StartAutoRecordWait() : StartRecordNow();
 
             if (!result) {
-                i2s_rx_.Disable();
                 notification_publisher_.Publish(AudioNotification::Type::kError,
                                                 static_cast<int32_t>(Error::kRecordStartFailed));
                 fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
@@ -329,6 +335,12 @@ void System::ExecuteFsmAction(AudioAction action)
         }
 
         case AudioAction::StopRecord: {
+            if (arec_waiting_) {
+                StopAutoRecordWait();
+                fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
+                return;
+            }
+
             rec_ctrl_.RequestStop();
             return;
         }
@@ -336,6 +348,99 @@ void System::ExecuteFsmAction(AudioAction action)
         default: {
             return;
         }
+    }
+}
+
+/**
+ * @brief 通常録音を即時開始する
+ *
+ * @retval true  録音開始成功
+ * @retval false 録音開始失敗
+ */
+bool System::StartRecordNow()
+{
+    if (i2s_rx_.Enable() != XST_SUCCESS) {
+        LOGE("I2s RX start failed");
+        return false;
+    }
+
+    const bool result = rec_ctrl_.Start(fsm_ctx_.params.rec_path, fsm_ctx_.params.sample_rate_hz, fsm_ctx_.params.bits,
+                                        fsm_ctx_.params.ch);
+
+    if (!result) {
+        i2s_rx_.Disable();
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief 自動録音待機を開始する
+ *
+ * @retval true  待機開始成功
+ * @retval false 待機開始失敗
+ */
+bool System::StartAutoRecordWait()
+{
+    auto &arec = platform::Arec::GetInstance();
+
+    arec_waiting_ = false;
+    arec_started_ = false;
+
+    if (i2s_rx_.Enable() != XST_SUCCESS) {
+        LOGE("I2s RX start failed for auto record");
+        return false;
+    }
+
+    arec.Enable();
+    arec_waiting_ = true;
+    return true;
+}
+
+/**
+ * @brief 自動録音待機を停止し、必要に応じてI2S RXを停止する
+ */
+void System::StopAutoRecordWait()
+{
+    if (!arec_waiting_ && !arec_started_) {
+        return;
+    }
+
+    auto &arec = platform::Arec::GetInstance();
+    arec.Disable();
+
+    arec_waiting_ = false;
+    arec_started_ = false;
+
+    if (!rec_ctrl_.IsActive()) {
+        i2s_rx_.Disable();
+    }
+}
+
+/**
+ * @brief 自動録音IRQを監視し、検知時に録音開始処理へ遷移する
+ */
+void System::ProcessAutoRecordWait()
+{
+    auto &arec = platform::Arec::GetInstance();
+
+    if (!arec.HasPendingIrq() || arec_started_) {
+        return;
+    }
+
+    arec.ClearPendingIrq();
+
+    arec_started_ = true;
+    arec_waiting_ = false;
+
+    if (!rec_ctrl_.Start(fsm_ctx_.params.rec_path, fsm_ctx_.params.sample_rate_hz, fsm_ctx_.params.bits,
+                         fsm_ctx_.params.ch)) {
+        LOGE("Auto record DMA start failed");
+        StopAutoRecordWait();
+        notification_publisher_.Publish(AudioNotification::Type::kError,
+                                        static_cast<int32_t>(Error::kRecordStartFailed));
+        fsm_ctx_.SetEvent(AudioFsmEvent::RecEnded);
     }
 }
 

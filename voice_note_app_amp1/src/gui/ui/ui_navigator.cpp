@@ -169,6 +169,11 @@ void UiNavigator::NotifyRecOptionDone(const rec_option_params_t &p)
     req.ng_th_close_x1000 = p.ng_th_close_x1000;
     req.ng_attack_ms      = p.ng_attack_ms;
     req.ng_release_ms     = p.ng_release_ms;
+    req.arec_enable           = p.arec_enable;
+    req.arec_threshold        = p.arec_threshold;
+    req.arec_window_shift     = p.arec_window_shift;
+    req.arec_pretrig_samples  = p.arec_pretrig_samples;
+    req.arec_required_windows = p.arec_required_windows;
 
     if (on_recopt_) {
         on_recopt_(req, on_recopt_user_);
@@ -298,7 +303,16 @@ void UiNavigator::SetRecordUiState(uint8_t state)
     if (!store_.GetRecUi().label_main) {
         return;
     }
-    lv_label_set_text(store_.GetRecUi().label_main, (state == 1) ? LV_SYMBOL_STOP : LV_SYMBOL_PLAY);
+
+    const bool recording = (state == 1);
+    SetRecordView(recording);
+    SetRecordMainBlink(&store_.GetRecUi(), recording);
+    SetRecordStatusText(recording ? "Recording" : "");
+}
+
+void UiNavigator::SetRecordStatusText(const char *text)
+{
+    gui::SetRecordStatusText(&store_.GetRecUi(), text);
 }
 
 }  // namespace gui

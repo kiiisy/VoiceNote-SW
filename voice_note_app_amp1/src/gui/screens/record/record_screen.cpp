@@ -151,6 +151,16 @@ lv_obj_t *CreateCenteredLabel(lv_obj_t *parent, const char *text, const lv_font_
     return label;
 }
 
+void MainLabelOpacityExec(void *obj, int32_t value)
+{
+    if (!obj) {
+        return;
+    }
+    lv_obj_set_style_text_opa(static_cast<lv_obj_t *>(obj), static_cast<lv_opa_t>(value), 0);
+}
+
+lv_obj_t *CreateTextLabel(lv_obj_t *parent, const char *text, const lv_font_t *font);
+
 /**
  * @brief 左上RECボタンを生成する
  *
@@ -210,6 +220,10 @@ void CreateMainButton(lv_obj_t *root, record_ui_t *ui)
 
     // Frame2は▶を初期表示
     ui->label_main = CreateCenteredLabel(ui->btn_main, LV_SYMBOL_PLAY, &lv_font_montserrat_28);
+
+    ui->label_status = CreateTextLabel(root, "", &lv_font_montserrat_16);
+    lv_obj_set_style_text_opa(ui->label_status, LV_OPA_80, 0);
+    lv_obj_align_to(ui->label_status, ui->btn_main, LV_ALIGN_OUT_TOP_MID, 0, -10);
 }
 
 /**
@@ -284,6 +298,39 @@ void SetRecordViewState(record_ui_t *ui, record_view_state_t st)
     }
 
     lv_label_set_text(ui->label_main, (st == record_view_state_t::ShowStop) ? LV_SYMBOL_STOP : LV_SYMBOL_PLAY);
+}
+
+void SetRecordStatusText(record_ui_t *ui, const char *text)
+{
+    if (!ui || !ui->label_status) {
+        return;
+    }
+
+    lv_label_set_text(ui->label_status, (text && text[0] != '\0') ? text : "");
+}
+
+void SetRecordMainBlink(record_ui_t *ui, bool enable)
+{
+    if (!ui || !ui->label_main) {
+        return;
+    }
+
+    lv_anim_del(ui->label_main, MainLabelOpacityExec);
+    lv_obj_set_style_text_opa(ui->label_main, LV_OPA_COVER, 0);
+
+    if (!enable) {
+        return;
+    }
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_var(&anim, ui->label_main);
+    lv_anim_set_exec_cb(&anim, MainLabelOpacityExec);
+    lv_anim_set_values(&anim, LV_OPA_30, LV_OPA_COVER);
+    lv_anim_set_time(&anim, 420);
+    lv_anim_set_playback_time(&anim, 420);
+    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&anim);
 }
 
 void SetRecordSeek(record_ui_t *ui, uint32_t captured_ms, uint32_t target_ms)
