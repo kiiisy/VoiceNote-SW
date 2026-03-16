@@ -103,7 +103,8 @@ void UiInputHandler::OnRecOptionRequeste(const gui::RecOptionRequest &req)
     const int32_t ng_th_open_q15  = static_cast<int32_t>(req.ng_th_open_x1000) * 32768 / 1000;
     const int32_t ng_th_close_q15 = static_cast<int32_t>(req.ng_th_close_x1000) * 32768 / 1000;
     ipc_->SetRecOption(req.dc_enable, dc_fc_q16, req.ng_enable, ng_th_open_q15, ng_th_close_q15, req.ng_attack_ms,
-                       req.ng_release_ms);
+                       req.ng_release_ms, req.arec_enable, req.arec_threshold, req.arec_window_shift,
+                       req.arec_pretrig_samples, req.arec_required_windows);
 }
 
 /**

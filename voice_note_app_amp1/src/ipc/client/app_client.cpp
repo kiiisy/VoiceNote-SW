@@ -86,17 +86,24 @@ uint32_t IpcClient::ListDir(const char *path)
 }
 
 uint32_t IpcClient::SetRecOption(bool dc_enable, int32_t dc_fc_q16, bool ng_enable, int32_t ng_th_open_q15,
-                                 int32_t ng_th_close_q15, uint16_t ng_attack_ms, uint16_t ng_release_ms)
+                                 int32_t ng_th_close_q15, uint16_t ng_attack_ms, uint16_t ng_release_ms,
+                                 bool arec_enable, uint16_t arec_threshold, uint8_t arec_window_shift,
+                                 uint16_t arec_pretrig_samples, uint8_t arec_required_windows)
 {
     core::ipc::RecOptionPayload p{};
     std::memset(&p, 0, sizeof(p));
-    p.dc_enable      = dc_enable ? 1 : 0;
-    p.ng_enable      = ng_enable ? 1 : 0;
-    p.dc_fc_q16      = dc_fc_q16;
-    p.ng_th_open_q15 = ng_th_open_q15;
+    p.dc_enable       = dc_enable ? 1 : 0;
+    p.ng_enable       = ng_enable ? 1 : 0;
+    p.arec_enable     = arec_enable ? 1 : 0;
+    p.arec_window_shift = arec_window_shift;
+    p.dc_fc_q16       = dc_fc_q16;
+    p.ng_th_open_q15  = ng_th_open_q15;
     p.ng_th_close_q15 = ng_th_close_q15;
-    p.ng_attack_ms   = ng_attack_ms;
-    p.ng_release_ms  = ng_release_ms;
+    p.ng_attack_ms    = ng_attack_ms;
+    p.ng_release_ms   = ng_release_ms;
+    p.arec_threshold  = arec_threshold;
+    p.arec_pretrig_samples  = arec_pretrig_samples;
+    p.arec_required_windows = arec_required_windows;
 
     const uint32_t seq = NextSeq();
     cmd_tx_.Send(core::ipc::MakeCmd(core::ipc::CmdId::SetRecOption, seq, p));

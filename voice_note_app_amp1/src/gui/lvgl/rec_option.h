@@ -16,6 +16,12 @@ struct RecOptionRequest
     uint16_t ng_th_close_x1000{40};
     uint16_t ng_attack_ms{5};
     uint16_t ng_release_ms{50};
+
+    bool     arec_enable{false};
+    uint16_t arec_threshold{0x0200};
+    uint8_t  arec_window_shift{6};
+    uint16_t arec_pretrig_samples{512};
+    uint8_t  arec_required_windows{2};
 };
 
 }  // namespace gui

@@ -68,6 +68,7 @@ public:
     void SetRecordProgress(uint32_t captured_ms, uint32_t target_ms);
     void SetPlaybackUiState(uint8_t state);
     void SetRecordUiState(uint8_t state);
+    void SetRecordStatusText(const char *text);
     void SetPlayFileList(const char *names[UiNavigator::kMaxFiles], uint16_t count);
 
     void SetRecRequesteCallback(UiNavigator::RecRequesteFn fn, void *user);

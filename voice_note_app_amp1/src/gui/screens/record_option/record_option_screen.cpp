@@ -16,11 +16,15 @@ namespace core1 {
 namespace gui {
 namespace {
 
-static constexpr uint16_t kDcFcCandidatesHz[]       = {10, 20, 40, 80, 120};
-static constexpr uint16_t kNgOpenCandidatesX1000[]  = {20, 40, 60, 80, 100, 150, 200};
-static constexpr uint16_t kNgCloseCandidatesX1000[] = {10, 20, 30, 40, 60, 80, 120, 160};
-static constexpr uint16_t kNgAttackCandidatesMs[]   = {1, 2, 5, 10, 20, 50, 100, 200};
-static constexpr uint16_t kNgReleaseCandidatesMs[]  = {5, 10, 20, 50, 100, 200, 500, 1000};
+static constexpr uint16_t kDcFcCandidatesHz[]          = {10, 20, 40, 80, 120};
+static constexpr uint16_t kNgOpenCandidatesX1000[]     = {20, 40, 60, 80, 100, 150, 200};
+static constexpr uint16_t kNgCloseCandidatesX1000[]    = {10, 20, 30, 40, 60, 80, 120, 160};
+static constexpr uint16_t kNgAttackCandidatesMs[]      = {1, 2, 5, 10, 20, 50, 100, 200};
+static constexpr uint16_t kNgReleaseCandidatesMs[]     = {5, 10, 20, 50, 100, 200, 500, 1000};
+static constexpr uint16_t kArecThresholdCandidates[]   = {0x0100, 0x0200, 0x0300, 0x0400};
+static constexpr uint8_t  kArecWindowShiftCandidates[] = {5, 6, 7, 8};
+static constexpr uint16_t kArecPretrigCandidates[]     = {256, 512, 1024, 1536};
+static constexpr uint8_t  kArecRequiredCandidates[]    = {1, 2, 3, 4};
 
 /**
  * @brief 子オブジェクトから親へのスクロール伝播を有効化する
@@ -104,12 +108,12 @@ lv_obj_t *CreateRow(lv_obj_t *parent, lv_coord_t h)
  * @param font 使用フォント
  * @return 生成したラベル
  */
-lv_obj_t *CreateLabel(lv_obj_t *parent, const char *text, const lv_font_t *font)
+lv_obj_t *CreateLabel(lv_obj_t *parent, const char *text)
 {
     lv_obj_t *label = lv_label_create(parent);
     lv_label_set_text(label, text);
     lv_obj_set_style_text_color(label, core1::gui::color::White(), 0);
-    lv_obj_set_style_text_font(label, font, 0);
+    lv_obj_set_style_text_font(label, &noto_sans_jp, 0);
     return label;
 }
 
@@ -174,7 +178,7 @@ lv_obj_t *CreateDropDown(lv_obj_t *parent, const char *options, uint16_t selecte
 void CreateSwitchRow(lv_obj_t *content, const char *title, lv_obj_t **out_switch)
 {
     lv_obj_t *row = CreateRow(content, 44);
-    CreateLabel(row, title, &noto_sans_jp);
+    CreateLabel(row, title);
     *out_switch = lv_switch_create(row);
     core1::gui::KillScroll(*out_switch);
 }
@@ -192,8 +196,8 @@ void CreateSwitchRow(lv_obj_t *content, const char *title, lv_obj_t **out_switch
 void CreateDropDownRow(lv_obj_t *content, const char *title, const char *options, uint16_t selected, lv_obj_t **out_dd,
                        rec_option_ui_t *)
 {
-    lv_obj_t *row = CreateRow(content, 44);
-    lv_obj_t *label = CreateLabel(row, title, &noto_sans_jp);
+    lv_obj_t *row   = CreateRow(content, 44);
+    lv_obj_t *label = CreateLabel(row, title);
     lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
     lv_obj_set_flex_grow(label, 1);
     lv_obj_set_width(label, 1);
@@ -221,7 +225,7 @@ void CreateRowDone(lv_obj_t *content, rec_option_ui_t *ui)
     lv_obj_set_style_bg_color(ui->btn_done, core1::gui::color::DoneButtonBg(), 0);
     lv_obj_add_event_cb(ui->btn_done, OnDone, LV_EVENT_RELEASED, ui);
 
-    lv_obj_t *label = CreateLabel(ui->btn_done, "完了", &noto_sans_jp);
+    lv_obj_t *label = CreateLabel(ui->btn_done, "完了");
     lv_obj_center(label);
 }
 
@@ -295,6 +299,62 @@ uint16_t GetNgReleaseByIndex(uint16_t idx)
     return kNgReleaseCandidatesMs[idx];
 }
 
+/**
+ * @brief ARECしきい値の選択indexから値を取得する
+ *
+ * @param idx 選択index
+ * @return しきい値
+ */
+uint16_t GetArecThresholdByIndex(uint16_t idx)
+{
+    if (idx >= (sizeof(kArecThresholdCandidates) / sizeof(kArecThresholdCandidates[0]))) {
+        return kArecThresholdCandidates[1];
+    }
+    return kArecThresholdCandidates[idx];
+}
+
+/**
+ * @brief AREC窓長シフトの選択indexから値を取得する
+ *
+ * @param idx 選択index
+ * @return 窓長シフト値
+ */
+uint8_t GetArecWindowShiftByIndex(uint16_t idx)
+{
+    if (idx >= (sizeof(kArecWindowShiftCandidates) / sizeof(kArecWindowShiftCandidates[0]))) {
+        return kArecWindowShiftCandidates[1];
+    }
+    return kArecWindowShiftCandidates[idx];
+}
+
+/**
+ * @brief ARECプリトリガ保持数の選択indexから値を取得する
+ *
+ * @param idx 選択index
+ * @return プリトリガ保持サンプル数
+ */
+uint16_t GetArecPretrigByIndex(uint16_t idx)
+{
+    if (idx >= (sizeof(kArecPretrigCandidates) / sizeof(kArecPretrigCandidates[0]))) {
+        return kArecPretrigCandidates[1];
+    }
+    return kArecPretrigCandidates[idx];
+}
+
+/**
+ * @brief AREC連続成立窓数の選択indexから値を取得する
+ *
+ * @param idx 選択index
+ * @return 連続成立窓数
+ */
+uint8_t GetArecRequiredByIndex(uint16_t idx)
+{
+    if (idx >= (sizeof(kArecRequiredCandidates) / sizeof(kArecRequiredCandidates[0]))) {
+        return kArecRequiredCandidates[1];
+    }
+    return kArecRequiredCandidates[idx];
+}
+
 }  // namespace
 
 /**
@@ -323,14 +383,21 @@ void CreateRecOptionUi(lv_obj_t *parent, rec_option_ui_t *ui)
 
     CreateSwitchRow(ui->content, "ノイズゲート", &ui->sw_ng_enable);
 
-    CreateDropDownRow(ui->content, "Open閾値", "0.020\n0.040\n0.060\n0.080\n0.100\n0.150\n0.200", 1,
-                      &ui->dd_ng_open, ui);
+    CreateDropDownRow(ui->content, "Open閾値", "0.020\n0.040\n0.060\n0.080\n0.100\n0.150\n0.200", 1, &ui->dd_ng_open,
+                      ui);
     CreateDropDownRow(ui->content, "Close閾値", "0.010\n0.020\n0.030\n0.040\n0.060\n0.080\n0.120\n0.160", 3,
                       &ui->dd_ng_close, ui);
     CreateDropDownRow(ui->content, "Attack", "1 ms\n2 ms\n5 ms\n10 ms\n20 ms\n50 ms\n100 ms\n200 ms", 2,
                       &ui->dd_ng_attack, ui);
     CreateDropDownRow(ui->content, "Release", "5 ms\n10 ms\n20 ms\n50 ms\n100 ms\n200 ms\n500 ms\n1000 ms", 3,
                       &ui->dd_ng_release, ui);
+
+    CreateSwitchRow(ui->content, "自動録音", &ui->sw_arec_enable);
+    lv_obj_add_state(ui->sw_arec_enable, LV_STATE_CHECKED);
+    CreateDropDownRow(ui->content, "閾値", "0x0100\n0x0200\n0x0300\n0x0400", 1, &ui->dd_arec_threshold, ui);
+    CreateDropDownRow(ui->content, "窓長", "2^5\n2^6\n2^7\n2^8", 1, &ui->dd_arec_window_shift, ui);
+    CreateDropDownRow(ui->content, "プリトリガ", "256\n512\n1024\n1536", 1, &ui->dd_arec_pretrig_samples, ui);
+    CreateDropDownRow(ui->content, "連続窓", "1\n2\n3\n4", 1, &ui->dd_arec_required_windows, ui);
 
     CreateRowDone(ui->content, ui);
 }
@@ -383,13 +450,18 @@ void GetRecOptionParams(const rec_option_ui_t *ui, rec_option_params_t *out)
         return;
     }
 
-    out->dc_enable         = lv_obj_has_state(ui->sw_dc_enable, LV_STATE_CHECKED);
-    out->dc_fc_hz          = GetDcFcHzByIndex(lv_dropdown_get_selected(ui->dd_dc_fc));
-    out->ng_enable         = lv_obj_has_state(ui->sw_ng_enable, LV_STATE_CHECKED);
-    out->ng_th_open_x1000  = GetNgOpenByIndex(lv_dropdown_get_selected(ui->dd_ng_open));
-    out->ng_th_close_x1000 = GetNgCloseByIndex(lv_dropdown_get_selected(ui->dd_ng_close));
-    out->ng_attack_ms      = GetNgAttackByIndex(lv_dropdown_get_selected(ui->dd_ng_attack));
-    out->ng_release_ms     = GetNgReleaseByIndex(lv_dropdown_get_selected(ui->dd_ng_release));
+    out->dc_enable             = lv_obj_has_state(ui->sw_dc_enable, LV_STATE_CHECKED);
+    out->dc_fc_hz              = GetDcFcHzByIndex(lv_dropdown_get_selected(ui->dd_dc_fc));
+    out->ng_enable             = lv_obj_has_state(ui->sw_ng_enable, LV_STATE_CHECKED);
+    out->ng_th_open_x1000      = GetNgOpenByIndex(lv_dropdown_get_selected(ui->dd_ng_open));
+    out->ng_th_close_x1000     = GetNgCloseByIndex(lv_dropdown_get_selected(ui->dd_ng_close));
+    out->ng_attack_ms          = GetNgAttackByIndex(lv_dropdown_get_selected(ui->dd_ng_attack));
+    out->ng_release_ms         = GetNgReleaseByIndex(lv_dropdown_get_selected(ui->dd_ng_release));
+    out->arec_enable           = lv_obj_has_state(ui->sw_arec_enable, LV_STATE_CHECKED);
+    out->arec_threshold        = GetArecThresholdByIndex(lv_dropdown_get_selected(ui->dd_arec_threshold));
+    out->arec_window_shift     = GetArecWindowShiftByIndex(lv_dropdown_get_selected(ui->dd_arec_window_shift));
+    out->arec_pretrig_samples  = GetArecPretrigByIndex(lv_dropdown_get_selected(ui->dd_arec_pretrig_samples));
+    out->arec_required_windows = GetArecRequiredByIndex(lv_dropdown_get_selected(ui->dd_arec_required_windows));
 }
 
 }  // namespace gui

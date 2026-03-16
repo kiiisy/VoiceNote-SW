@@ -35,6 +35,25 @@ void IpcStatusHandler::BindIpcCallbacks()
         return;
     }
 
+    auto prev_on_ack = ipc_->on_ack;
+    ipc_->on_ack = [this, prev_on_ack](core::ipc::CmdId cmd, uint32_t seq, core::ipc::AckStatus st, int32_t rc) {
+        if (prev_on_ack) {
+            prev_on_ack(cmd, seq, st, rc);
+        }
+
+        if (!gui_) {
+            return;
+        }
+
+        if (cmd == core::ipc::CmdId::RecStart && st == core::ipc::AckStatus::Done && rc >= 0) {
+            gui_->SetRecordStatusText("Standby");
+        }
+
+        if (cmd == core::ipc::CmdId::RecStop && st == core::ipc::AckStatus::Done && rc >= 0) {
+            gui_->SetRecordStatusText("");
+        }
+    };
+
     ipc_->on_playback_status = [this](const core::ipc::PlaybackStatusPayload &st) {
         if (gui_) {
             gui_->SetPlaybackUiState(st.state);
@@ -51,13 +70,18 @@ void IpcStatusHandler::BindIpcCallbacks()
     };
 
     ipc_->on_record_status = [this](const core::ipc::RecordStatusPayload &st) {
+        const uint8_t prev = last_rec_state_;
+        last_rec_state_    = st.state;
+
         if (gui_) {
-            gui_->SetRecordUiState(st.state);
+            if (prev != st.state) {
+                gui_->SetRecordUiState(st.state);
+            }
             gui_->SetRecordProgress(st.captured_ms, st.target_ms);
         }
 
-        // 録音停止通知は毎回受けるので、state==0を直接イベント化する
-        if (event_bus_ && st.state == 0U) {
+        // 停止への遷移だけイベント化する
+        if (event_bus_ && prev != st.state && st.state == 0U) {
             event_bus_->Push(Event::IpcRecordStopped);
         }
     };
