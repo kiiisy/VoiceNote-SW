@@ -552,6 +552,14 @@
 #define XPAR_AGC_0_BASEADDR 0x43cb0000
 #define XPAR_AGC_0_HIGHADDR 0x43cbffff
 
+/* Definitions for peripheral AREC_0 */
+#define XPAR_AREC_0_BASEADDR 0x43cc0000
+#define XPAR_AREC_0_HIGHADDR 0x43ccffff
+
+/* Canonical definitions for peripheral AREC_0 */
+#define XPAR_AREC_0_BASEADDR 0x43cc0000
+#define XPAR_AREC_0_HIGHADDR 0x43ccffff
+
 /* Definitions for peripheral I2S_CLOCK_MUX_0 */
 #define XPAR_I2S_CLOCK_MUX_0_BASEADDR 0x43c20000
 #define XPAR_I2S_CLOCK_MUX_0_HIGHADDR 0x43c2ffff

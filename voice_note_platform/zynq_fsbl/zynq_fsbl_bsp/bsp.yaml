@@ -152,6 +152,7 @@ lib_folder: lib
 libsrc_folder: libsrc
 drv_info:
   agc_0: None
+  arec_0: None
   audio_clean_up_0:
     driver: audio_clean_up
     ip_name: audio_clean_up
