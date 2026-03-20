@@ -199,10 +199,10 @@ void CreateMainButton(lv_obj_t *root, play_ui_t *ui)
 {
     ui->btn_main = lv_button_create(root);
 
-    lv_obj_set_size(ui->btn_main, 96, 96);
+    lv_obj_set_size(ui->btn_main, 104, 104);
     lv_obj_align(ui->btn_main, LV_ALIGN_CENTER, 0, -15);
 
-    ApplyCircleButtonStyle(ui->btn_main, core1::gui::color::CircleButtonDark(), LV_OPA_COVER);
+    ApplyCircleButtonStyle(ui->btn_main, core1::gui::color::CircleButtonPlay(), LV_OPA_COVER);
 
     // 離したら確定にする
     lv_obj_add_event_cb(ui->btn_main, OnMain, LV_EVENT_RELEASED, ui);

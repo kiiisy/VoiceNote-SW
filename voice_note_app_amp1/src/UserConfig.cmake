@@ -95,6 +95,7 @@ set(USER_COMPILE_SOURCES
 "ipc/client/app_client.cpp"
 "log/logger_core.cpp"
 "third_party/lvgl/noto_sans_jp.c"
+"third_party/lvgl/font_awesome.c"
 )
 
 # -----------------------------------------

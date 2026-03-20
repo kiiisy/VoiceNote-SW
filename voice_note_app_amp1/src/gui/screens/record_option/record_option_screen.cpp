@@ -229,6 +229,18 @@ void CreateRowDone(lv_obj_t *content, rec_option_ui_t *ui)
     lv_obj_center(label);
 }
 
+void CreateSectionDivider(lv_obj_t *content)
+{
+    lv_obj_t *line = lv_obj_create(content);
+    lv_obj_set_size(line, lv_pct(100), 1);
+    lv_obj_set_style_bg_color(line, core1::gui::color::White(), 0);
+    lv_obj_set_style_bg_opa(line, LV_OPA_40, 0);
+    lv_obj_set_style_border_width(line, 0, 0);
+    lv_obj_set_style_radius(line, 0, 0);
+    lv_obj_set_style_pad_all(line, 0, 0);
+    lv_obj_clear_flag(line, LV_OBJ_FLAG_SCROLLABLE);
+}
+
 /**
  * @brief カットオフ周波数の選択indexから値(Hz)を取得する
  *
@@ -380,6 +392,7 @@ void CreateRecOptionUi(lv_obj_t *parent, rec_option_ui_t *ui)
     lv_obj_add_state(ui->sw_dc_enable, LV_STATE_CHECKED);
 
     CreateDropDownRow(ui->content, "カットオフ周波数", "10 Hz\n20 Hz\n40 Hz\n80 Hz\n120 Hz", 1, &ui->dd_dc_fc, ui);
+    CreateSectionDivider(ui->content);
 
     CreateSwitchRow(ui->content, "ノイズゲート", &ui->sw_ng_enable);
 
@@ -391,13 +404,14 @@ void CreateRecOptionUi(lv_obj_t *parent, rec_option_ui_t *ui)
                       &ui->dd_ng_attack, ui);
     CreateDropDownRow(ui->content, "Release", "5 ms\n10 ms\n20 ms\n50 ms\n100 ms\n200 ms\n500 ms\n1000 ms", 3,
                       &ui->dd_ng_release, ui);
+    CreateSectionDivider(ui->content);
 
     CreateSwitchRow(ui->content, "自動録音", &ui->sw_arec_enable);
     lv_obj_add_state(ui->sw_arec_enable, LV_STATE_CHECKED);
-    CreateDropDownRow(ui->content, "閾値", "0x0100\n0x0200\n0x0300\n0x0400", 1, &ui->dd_arec_threshold, ui);
-    CreateDropDownRow(ui->content, "窓長", "2^5\n2^6\n2^7\n2^8", 1, &ui->dd_arec_window_shift, ui);
+    CreateDropDownRow(ui->content, "開始閾値", "0x0100\n0x0200\n0x0300\n0x0400", 1, &ui->dd_arec_threshold, ui);
+    CreateDropDownRow(ui->content, "判定長", "2^5\n2^6\n2^7\n2^8", 1, &ui->dd_arec_window_shift, ui);
     CreateDropDownRow(ui->content, "プリトリガ", "256\n512\n1024\n1536", 1, &ui->dd_arec_pretrig_samples, ui);
-    CreateDropDownRow(ui->content, "連続窓", "1\n2\n3\n4", 1, &ui->dd_arec_required_windows, ui);
+    CreateDropDownRow(ui->content, "連続回数", "1\n2\n3\n4", 1, &ui->dd_arec_required_windows, ui);
 
     CreateRowDone(ui->content, ui);
 }

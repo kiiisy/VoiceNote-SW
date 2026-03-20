@@ -40,6 +40,8 @@ struct record_ui_t
 
     lv_obj_t *btn_main;    // 中央のメインボタン
     lv_obj_t *label_main;  // メインボタン内の表示（▶/■）
+    lv_obj_t *ripple_a;    // 録音中エフェクト（内側波紋）
+    lv_obj_t *ripple_b;    // 録音中エフェクト（外側波紋）
     lv_obj_t *label_status;  // メインボタン周辺の状態表示
     lv_obj_t *slider;      // 下部スライダー
     lv_obj_t *label_pos;   // 録音経過

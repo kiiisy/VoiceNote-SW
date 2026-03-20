@@ -16,9 +16,19 @@
 // プロジェクトライブラリ
 #include "screen_utility.h"
 
+extern "C" {
+extern const lv_font_t font_awesome;
+}
+
 namespace core1 {
 namespace gui {
 namespace {
+
+constexpr const char *kIconMic = "\xEF\x84\xB0";  // U+F130 (Font Awesome: mic)
+constexpr int32_t kMainButtonSize = 104;
+constexpr int32_t kMainButtonOffsetY = -15;
+constexpr int32_t kRippleMaxSize  = 220;
+const lv_color_t  kRippleColor    = lv_color_hex(0xFF6B96);
 
 /**
  * @brief Backボタンのイベント処理
@@ -159,6 +169,57 @@ void MainLabelOpacityExec(void *obj, int32_t value)
     lv_obj_set_style_text_opa(static_cast<lv_obj_t *>(obj), static_cast<lv_opa_t>(value), 0);
 }
 
+void RippleSizeExec(void *obj, int32_t value)
+{
+    if (!obj) {
+        return;
+    }
+
+    auto *ring = static_cast<lv_obj_t *>(obj);
+    lv_obj_set_size(ring, value, value);
+    lv_obj_align(ring, LV_ALIGN_CENTER, 0, kMainButtonOffsetY);
+}
+
+void RippleOpaExec(void *obj, int32_t value)
+{
+    if (!obj) {
+        return;
+    }
+    lv_obj_set_style_bg_opa(static_cast<lv_obj_t *>(obj), static_cast<lv_opa_t>(value), 0);
+}
+
+void MainButtonShadowWidthExec(void *obj, int32_t value)
+{
+    if (!obj) {
+        return;
+    }
+    lv_obj_set_style_shadow_width(static_cast<lv_obj_t *>(obj), value, 0);
+}
+
+void MainButtonShadowOpaExec(void *obj, int32_t value)
+{
+    if (!obj) {
+        return;
+    }
+    lv_obj_set_style_shadow_opa(static_cast<lv_obj_t *>(obj), static_cast<lv_opa_t>(value), 0);
+}
+
+lv_obj_t *CreateRipple(lv_obj_t *root, lv_opa_t opa)
+{
+    lv_obj_t *ring = lv_obj_create(root);
+    core1::gui::KillScroll(ring);
+    lv_obj_clear_flag(ring, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_radius(ring, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(ring, kRippleColor, 0);
+    lv_obj_set_style_bg_opa(ring, opa, 0);
+    lv_obj_set_style_border_width(ring, 0, 0);
+    lv_obj_set_style_shadow_width(ring, 0, 0);
+    lv_obj_set_size(ring, kMainButtonSize, kMainButtonSize);
+    lv_obj_align(ring, LV_ALIGN_CENTER, 0, kMainButtonOffsetY);
+    lv_obj_add_flag(ring, LV_OBJ_FLAG_HIDDEN);
+    return ring;
+}
+
 lv_obj_t *CreateTextLabel(lv_obj_t *parent, const char *text, const lv_font_t *font);
 
 /**
@@ -209,21 +270,27 @@ void CreateMenuButton(lv_obj_t *root, record_ui_t *ui)
  */
 void CreateMainButton(lv_obj_t *root, record_ui_t *ui)
 {
+    ui->ripple_b = CreateRipple(root, LV_OPA_90);
+    ui->ripple_a = CreateRipple(root, static_cast<lv_opa_t>(120));
+
     ui->btn_main = lv_button_create(root);
 
-    lv_obj_set_size(ui->btn_main, 96, 96);
-    lv_obj_align(ui->btn_main, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_set_size(ui->btn_main, kMainButtonSize, kMainButtonSize);
+    lv_obj_align(ui->btn_main, LV_ALIGN_CENTER, 0, kMainButtonOffsetY);
 
-    ApplyCircleButtonStyle(ui->btn_main, core1::gui::color::CircleButtonDark(), LV_OPA_COVER);  // 見た目RGB: 黒
+    ApplyCircleButtonStyle(ui->btn_main, core1::gui::color::CircleButtonRecord(), LV_OPA_COVER);
+    lv_obj_set_style_shadow_color(ui->btn_main, kRippleColor, 0);
+    lv_obj_set_style_shadow_width(ui->btn_main, 0, 0);
+    lv_obj_set_style_shadow_opa(ui->btn_main, 0, 0);
 
     lv_obj_add_event_cb(ui->btn_main, OnMain, LV_EVENT_RELEASED, ui);
 
-    // Frame2は▶を初期表示
-    ui->label_main = CreateCenteredLabel(ui->btn_main, LV_SYMBOL_PLAY, &lv_font_montserrat_28);
+    // 待機状態は mic アイコンを初期表示
+    ui->label_main = CreateCenteredLabel(ui->btn_main, kIconMic, &font_awesome);
 
     ui->label_status = CreateTextLabel(root, "", &lv_font_montserrat_16);
     lv_obj_set_style_text_opa(ui->label_status, LV_OPA_80, 0);
-    lv_obj_align_to(ui->label_status, ui->btn_main, LV_ALIGN_OUT_TOP_MID, 0, -10);
+    lv_obj_align(ui->label_status, LV_ALIGN_CENTER, 0, 60);
 }
 
 /**
@@ -297,7 +364,14 @@ void SetRecordViewState(record_ui_t *ui, record_view_state_t st)
         return;
     }
 
-    lv_label_set_text(ui->label_main, (st == record_view_state_t::ShowStop) ? LV_SYMBOL_STOP : LV_SYMBOL_PLAY);
+    if (st == record_view_state_t::ShowStop) {
+        lv_obj_set_style_text_font(ui->label_main, &lv_font_montserrat_28, 0);
+        lv_label_set_text(ui->label_main, LV_SYMBOL_STOP);
+        return;
+    }
+
+    lv_obj_set_style_text_font(ui->label_main, &font_awesome, 0);
+    lv_label_set_text(ui->label_main, kIconMic);
 }
 
 void SetRecordStatusText(record_ui_t *ui, const char *text)
@@ -311,26 +385,93 @@ void SetRecordStatusText(record_ui_t *ui, const char *text)
 
 void SetRecordMainBlink(record_ui_t *ui, bool enable)
 {
-    if (!ui || !ui->label_main) {
+    if (!ui || !ui->label_main || !ui->ripple_a || !ui->ripple_b) {
         return;
     }
 
     lv_anim_del(ui->label_main, MainLabelOpacityExec);
     lv_obj_set_style_text_opa(ui->label_main, LV_OPA_COVER, 0);
+    lv_anim_del(ui->btn_main, MainButtonShadowWidthExec);
+    lv_anim_del(ui->btn_main, MainButtonShadowOpaExec);
+    lv_anim_del(ui->ripple_a, RippleSizeExec);
+    lv_anim_del(ui->ripple_a, RippleOpaExec);
+    lv_anim_del(ui->ripple_b, RippleSizeExec);
+    lv_anim_del(ui->ripple_b, RippleOpaExec);
 
     if (!enable) {
+        lv_obj_add_flag(ui->ripple_a, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ui->ripple_b, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_size(ui->ripple_a, kMainButtonSize, kMainButtonSize);
+        lv_obj_set_size(ui->ripple_b, kMainButtonSize, kMainButtonSize);
+        lv_obj_set_style_bg_opa(ui->ripple_a, LV_OPA_0, 0);
+        lv_obj_set_style_bg_opa(ui->ripple_b, LV_OPA_0, 0);
+        lv_obj_set_style_shadow_width(ui->btn_main, 0, 0);
+        lv_obj_set_style_shadow_opa(ui->btn_main, 0, 0);
         return;
     }
 
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-    lv_anim_set_var(&anim, ui->label_main);
-    lv_anim_set_exec_cb(&anim, MainLabelOpacityExec);
-    lv_anim_set_values(&anim, LV_OPA_30, LV_OPA_COVER);
-    lv_anim_set_time(&anim, 420);
-    lv_anim_set_playback_time(&anim, 420);
-    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
-    lv_anim_start(&anim);
+    lv_obj_clear_flag(ui->ripple_a, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(ui->ripple_b, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_background(ui->ripple_b);
+    lv_obj_move_foreground(ui->btn_main);
+
+    lv_anim_t a_size;
+    lv_anim_init(&a_size);
+    lv_anim_set_var(&a_size, ui->ripple_a);
+    lv_anim_set_exec_cb(&a_size, RippleSizeExec);
+    lv_anim_set_values(&a_size, kMainButtonSize, kRippleMaxSize);
+    lv_anim_set_time(&a_size, 900);
+    lv_anim_set_repeat_count(&a_size, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&a_size);
+
+    lv_anim_t a_opa;
+    lv_anim_init(&a_opa);
+    lv_anim_set_var(&a_opa, ui->ripple_a);
+    lv_anim_set_exec_cb(&a_opa, RippleOpaExec);
+    lv_anim_set_values(&a_opa, 220, 0);
+    lv_anim_set_time(&a_opa, 900);
+    lv_anim_set_repeat_count(&a_opa, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&a_opa);
+
+    lv_anim_t b_size;
+    lv_anim_init(&b_size);
+    lv_anim_set_var(&b_size, ui->ripple_b);
+    lv_anim_set_exec_cb(&b_size, RippleSizeExec);
+    lv_anim_set_values(&b_size, kMainButtonSize, kRippleMaxSize);
+    lv_anim_set_time(&b_size, 900);
+    lv_anim_set_delay(&b_size, 450);
+    lv_anim_set_repeat_count(&b_size, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&b_size);
+
+    lv_anim_t b_opa;
+    lv_anim_init(&b_opa);
+    lv_anim_set_var(&b_opa, ui->ripple_b);
+    lv_anim_set_exec_cb(&b_opa, RippleOpaExec);
+    lv_anim_set_values(&b_opa, 170, 0);
+    lv_anim_set_time(&b_opa, 900);
+    lv_anim_set_delay(&b_opa, 450);
+    lv_anim_set_repeat_count(&b_opa, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&b_opa);
+
+    lv_anim_t shadow_w;
+    lv_anim_init(&shadow_w);
+    lv_anim_set_var(&shadow_w, ui->btn_main);
+    lv_anim_set_exec_cb(&shadow_w, MainButtonShadowWidthExec);
+    lv_anim_set_values(&shadow_w, 0, 64);
+    lv_anim_set_time(&shadow_w, 500);
+    lv_anim_set_playback_time(&shadow_w, 500);
+    lv_anim_set_repeat_count(&shadow_w, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&shadow_w);
+
+    lv_anim_t shadow_o;
+    lv_anim_init(&shadow_o);
+    lv_anim_set_var(&shadow_o, ui->btn_main);
+    lv_anim_set_exec_cb(&shadow_o, MainButtonShadowOpaExec);
+    lv_anim_set_values(&shadow_o, 220, 0);
+    lv_anim_set_time(&shadow_o, 500);
+    lv_anim_set_playback_time(&shadow_o, 500);
+    lv_anim_set_repeat_count(&shadow_o, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&shadow_o);
 }
 
 void SetRecordSeek(record_ui_t *ui, uint32_t captured_ms, uint32_t target_ms)

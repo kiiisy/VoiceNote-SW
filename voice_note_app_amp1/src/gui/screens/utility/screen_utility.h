@@ -56,6 +56,8 @@ inline lv_color_t HomePlayPlate() { return lv_color_hex(0xF6823B); }
 inline lv_color_t PlayBg() { return FromRgb(0x0086FF); }
 inline lv_color_t RecordBg() { return FromRgb(0x5A5AE6); }
 inline lv_color_t CircleButtonDark() { return FromRgb(0x1F1F27); }
+inline lv_color_t CircleButtonPlay() { return FromRgb(0x0072D8); }
+inline lv_color_t CircleButtonRecord() { return FromRgb(0x4F4FD0); }
 inline lv_color_t PlaylistSheetBg() { return FromRgb(0x111827); }
 inline lv_color_t PlaylistAccent() { return FromRgb(0x3B82F6); }
 inline lv_color_t DoneButtonBg() { return FromRgb(0x6A5ACD); }
