@@ -551,7 +551,7 @@ void CreateRowDistSlider(lv_obj_t *content, lv_coord_t W, play_agc_ui_t *ui)
     ui->slider_dist = lv_slider_create(row_slider);
     core1::gui::KillScroll(ui->slider_dist);
 
-    lv_slider_set_range(ui->slider_dist, 200, 3000);
+    lv_slider_set_range(ui->slider_dist, 0, 3000);
     lv_obj_set_width(ui->slider_dist, Percent(W, 80, 100));  // 80%
 
     // スライダー操作を優先するなら bubble を付けない方が自然なことが多い。

@@ -32,7 +32,7 @@ inline core0::platform::Agc::Config ToAgcConfig(const core::ipc::SetAgcPayload &
     cfg.alpha_shift = static_cast<uint32_t>(k);
 
     // dist_mm -> dist_sens_mm
-    const int32_t dist = std::clamp<int32_t>(p.dist_mm, 1, 30000);
+    const int32_t dist = std::clamp<int32_t>(p.dist_mm, 0, 30000);
     cfg.dist_sens_mm   = static_cast<uint32_t>(dist);
 
     // x100 -> float
@@ -47,11 +47,13 @@ inline core0::platform::Agc::Config ToAgcConfig(const core::ipc::SetAgcPayload &
         std::swap(gmin, gmax);
     }
 
-    // enable=0 は固定ゲイン1.0扱い
+    // enable=0 は manual_mode で固定ゲイン1.0 にする
     if (p.enable == 0) {
+        cfg.manual_mode = true;
         cfg.gain_min = 1.0f;
         cfg.gain_max = 1.0f;
     } else {
+        cfg.manual_mode = false;
         cfg.gain_min = gmin;
         cfg.gain_max = gmax;
     }

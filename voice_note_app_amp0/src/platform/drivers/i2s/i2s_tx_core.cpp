@@ -180,6 +180,7 @@ XStatus I2sTx::Enable()
 
     regs2_.MUX_CONTROL_REG().Write(0x01);
     regs_.CONTROL_REG().SetBits(i2stx::CTRL_EN_MASK);
+
     LOGI("I2s TX start");
 
     return XST_SUCCESS;

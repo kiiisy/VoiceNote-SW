@@ -32,6 +32,7 @@ public:
         uint32_t alpha_shift  = 6;      // IIR: 1/2^alpha_shift
         float    gain_min     = 0.5f;   // x0.5
         float    gain_max     = 2.0f;   // x2.0
+        bool     manual_mode  = false;  // CONTROL bit0
         bool     reset_iir    = false;  // CONTROL bit1
         bool     freeze_gain  = false;  // CONTROL bit2
     };

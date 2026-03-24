@@ -45,8 +45,11 @@ void Agc::ApplyConfig(const Config &cfg)
 {
     LOG_SCOPE();
 
-    // CONTROL bit1 RESET_IIR, bit2 FREEZE_GAIN
+    // CONTROL bit0 MANUAL_MODE, bit1 RESET_IIR, bit2 FREEZE_GAIN
     uint32_t ctrl = 0;
+    if (cfg.manual_mode) {
+        ctrl |= (1u << 0);
+    }
     if (cfg.reset_iir) {
         ctrl |= (1u << 1);
     }
