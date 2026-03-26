@@ -14,6 +14,7 @@ inline constexpr uint32_t kI2sTxIrqId            = XPS_FPGA1_INT_ID;
 inline constexpr uint32_t kAudioFormatterTxIrqId = XPS_FPGA2_INT_ID;
 inline constexpr uint32_t kAudioFormatterRxIrqId = XPS_FPGA3_INT_ID;
 inline constexpr uint32_t kI2cPlIrqId            = XPS_FPGA4_INT_ID;
+inline constexpr uint32_t kPlGpioIrqId           = XPS_FPGA5_INT_ID;
 inline constexpr uint32_t kArecIrqId             = XPS_FPGA8_INT_ID;
 
 }  // namespace core0

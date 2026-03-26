@@ -2,18 +2,18 @@
 #include "addr_map.h"
 #include "amp_hw.h"
 #include "app_server.h"
-#include "system.h"
 #include "audio_format.h"
-#include "board_io.h"
 #include "core_boot.h"
 #include "core_init.h"
 #include "gic_core.h"
 #include "gpio_pl.h"
 #include "i2s_rx_core.h"
 #include "i2s_tx_core.h"
+#include "irq_map.h"
 #include "logger_core.h"
 #include "memory_map.h"
 #include "mmu_utility.h"
+#include "system.h"
 
 int main()
 {
@@ -30,9 +30,9 @@ int main()
 
     core0::BootCpu1(core0::kCpu1StartAddr);
 
-    auto *s = core::ipc::GetShared();
+    auto *shared = core::ipc::GetShared();
 
-    core0::ipc::AppServer server(s);
+    core0::ipc::AppServer server(shared);
 
     // --------------------------------------------
     // 非キャッシュ領域化
@@ -47,10 +47,15 @@ int main()
     // --------------------------------------------
     // 各初期化 & 処理実行
     // --------------------------------------------
-    auto &gic = core0::platform::GicCore::GetInstance();
-    gic.Init({.base_addr = core0::kGicBaseAddr, .target_cpu = core0::platform::GicCore::CpuTarget::Cpu0});
+    auto     &gic = core0::platform::GicCore::GetInstance();
+    const int gic_init_status =
+        gic.Init({.base_addr = core0::kGicBaseAddr, .target_cpu = core0::platform::GicCore::CpuTarget::Cpu0});
+    if (gic_init_status != XST_SUCCESS) {
+        LOGE("Gic init failed");
+        return -1;
+    }
 
-    core0::platform::GpioPl::Config cfg{core0::kPlGpioBaseAddr, XPS_FPGA5_INT_ID,
+    core0::platform::GpioPl::Config cfg{core0::kPlGpioBaseAddr, core0::kPlGpioIrqId,
                                         core0::platform::GpioPl::ChType::kChBtn,
                                         core0::platform::GpioPl::ChType::kChLed};
     core0::platform::GpioPl         gpio_pl(cfg);
@@ -60,8 +65,9 @@ int main()
 
     core0::app::System sys(server, i2s_tx, i2s_rx);
 
-    if (!sys.Init()) {
-        LOGE("System Initialization Failed");
+    const bool sys_init_ok = sys.Init();
+    if (!sys_init_ok) {
+        LOGE("System init failed");
         return -1;
     }
 

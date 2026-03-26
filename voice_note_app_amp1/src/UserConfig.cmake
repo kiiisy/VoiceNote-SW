@@ -38,6 +38,7 @@ set(USER_INCLUDE_DIRECTORIES
 "app/state"
 "common"
 "common/display"
+"common/audio"
 "platform/display"
 "platform/display/panels/ili9341/"
 "platform/display/panels/st7789/"
