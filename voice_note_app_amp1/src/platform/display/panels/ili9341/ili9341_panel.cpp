@@ -10,7 +10,7 @@
 namespace core1 {
 namespace platform {
 
-void Ili9341Panel::Reset(const LcdBus &b)
+void Ili9341Panel::Reset(const LcdBus &b) noexcept
 {
     b.ResetDeassert();
     usleep(5 * 1000);
@@ -22,7 +22,7 @@ void Ili9341Panel::Reset(const LcdBus &b)
     LOGI("ILI9341 reset done.");
 }
 
-void Ili9341Panel::Init(const LcdBus &b)
+void Ili9341Panel::Init(const LcdBus &b) noexcept
 {
     auto CMD = [&](uint8_t v) { b.Cmd(v); };
     auto DAT = [&](uint8_t v) { b.Data(v); };
@@ -94,11 +94,29 @@ void Ili9341Panel::Init(const LcdBus &b)
     LOGI("ILI9341 init done.");
 }
 
-void Ili9341Panel::SetRotation(const LcdBus &b, uint8_t madctl)
+void Ili9341Panel::SetRotation(const LcdBus &b, uint8_t madctl) noexcept
 {
     b.Cmd(0x36);
     //b.Data(madctl);
     b.Data(static_cast<uint8_t>(madctl | MADCTL_BGR));
+}
+
+void Ili9341Panel::SetAddrWindow(const LcdBus &b, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) noexcept
+{
+    // CASET: Column address set
+    b.Cmd(0x2A);
+    const uint8_t col[] = {static_cast<uint8_t>(x0 >> 8), static_cast<uint8_t>(x0), static_cast<uint8_t>(x1 >> 8),
+                           static_cast<uint8_t>(x1)};
+    b.Data(col, sizeof(col));
+
+    // RASET: Row address set
+    b.Cmd(0x2B);
+    const uint8_t row[] = {static_cast<uint8_t>(y0 >> 8), static_cast<uint8_t>(y0), static_cast<uint8_t>(y1 >> 8),
+                           static_cast<uint8_t>(y1)};
+    b.Data(row, sizeof(row));
+
+    // RAMWR: Memory write
+    b.Cmd(0x2C);
 }
 }  // namespace platform
 }  // namespace core1

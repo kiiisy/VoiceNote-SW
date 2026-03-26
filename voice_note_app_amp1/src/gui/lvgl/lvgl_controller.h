@@ -14,7 +14,7 @@
 #include "lvgl.h"
 
 // プロジェクトライブラリ
-#include "display/display_spec.h"
+#include "display_spec.h"
 #include "gpio_ps.h"
 #include "play.h"
 #include "playlist.h"

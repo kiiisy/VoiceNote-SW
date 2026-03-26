@@ -6,6 +6,7 @@
 #include <cstring>
 
 // プロジェクトライブラリ
+#include "audio_spec.h"
 #include "logger_core.h"
 
 namespace core1 {
@@ -162,13 +163,13 @@ void UiNavigator::NotifyPlayAgcDone(const play_agc_params_t &p)
 void UiNavigator::NotifyRecOptionDone(const rec_option_params_t &p)
 {
     core1::gui::RecOptionRequest req{};
-    req.dc_enable         = p.dc_enable;
-    req.dc_fc_hz          = p.dc_fc_hz;
-    req.ng_enable         = p.ng_enable;
-    req.ng_th_open_x1000  = p.ng_th_open_x1000;
-    req.ng_th_close_x1000 = p.ng_th_close_x1000;
-    req.ng_attack_ms      = p.ng_attack_ms;
-    req.ng_release_ms     = p.ng_release_ms;
+    req.dc_enable             = p.dc_enable;
+    req.dc_fc_hz              = p.dc_fc_hz;
+    req.ng_enable             = p.ng_enable;
+    req.ng_th_open_x1000      = p.ng_th_open_x1000;
+    req.ng_th_close_x1000     = p.ng_th_close_x1000;
+    req.ng_attack_ms          = p.ng_attack_ms;
+    req.ng_release_ms         = p.ng_release_ms;
     req.arec_enable           = p.arec_enable;
     req.arec_threshold        = p.arec_threshold;
     req.arec_window_shift     = p.arec_window_shift;
@@ -191,7 +192,7 @@ void UiNavigator::SetPlayFileList(const char *names[kMaxFiles], uint16_t count)
     file_count_ = count;
 
     for (uint16_t i = 0; i < kMaxFiles; ++i) {
-        file_names_[i][0] = '\0';
+        file_names_[i][0]  = '\0';
         file_labels_[i][0] = '\0';
         if (i < count && names[i]) {
             std::snprintf(file_names_[i], sizeof(file_names_[i]), "%s", names[i]);
@@ -253,12 +254,12 @@ void UiNavigator::NotifyPlayMain()
 void UiNavigator::NotifyRecMain()
 {
     gui::RecRequest req{};
-    req.bits           = 16;
-    req.sample_rate_hz = 48000;
-    req.ch             = 2;
+    req.bits           = core1::common::audio::kRecBits;
+    req.sample_rate_hz = core1::common::audio::kRecSampleRateHz;
+    req.ch             = core1::common::audio::kRecChannelCount;
 
-    // 一旦固定の名前で設定する
-    const char *name = "recording_test.wav";
+    // amp0側でSDの中身を見て実際のファイル名を決定するのでここはダミー
+    const char *name = "dummy.wav";
     std::snprintf(req.filename, sizeof(req.filename), "%s", name);
 
     if (on_recmain_) {
@@ -310,10 +311,7 @@ void UiNavigator::SetRecordUiState(uint8_t state)
     SetRecordStatusText(recording ? "Recording" : "");
 }
 
-void UiNavigator::SetRecordStatusText(const char *text)
-{
-    gui::SetRecordStatusText(&store_.GetRecUi(), text);
-}
+void UiNavigator::SetRecordStatusText(const char *text) { gui::SetRecordStatusText(&store_.GetRecUi(), text); }
 
 }  // namespace gui
 }  // namespace core1

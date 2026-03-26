@@ -5,6 +5,7 @@
 #pragma once
 
 // プロジェクトライブラリ
+#include "display_spec.h"
 #include "panel_interface.h"
 
 namespace core1 {
@@ -44,8 +45,8 @@ private:
 
     static void SetFullAddr(const LcdBus &b) noexcept;
 
-    static constexpr uint16_t PHYS_W = 240;  // 物理X範囲
-    static constexpr uint16_t PHYS_H = 320;  // 物理Y範囲
+    static constexpr uint16_t PHYS_W = common::display::kWidth;   // 物理X範囲
+    static constexpr uint16_t PHYS_H = common::display::kHeight;  // 物理Y範囲
 };
 
 }  // namespace platform
