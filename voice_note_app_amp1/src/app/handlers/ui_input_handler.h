@@ -64,7 +64,7 @@ private:
     PlayListHandler     *playlist_handler_{nullptr};
 
     static constexpr uint32_t kUiPlayDebounceMs = 180;
-    static constexpr uint32_t kUiRecDebounceMs  = 180;
+    static constexpr uint32_t kUiRecDebounceMs  = 400;
     uint32_t                  last_ui_play_req_ms_{0};
     uint32_t                  last_ui_rec_req_ms_{0};
 
