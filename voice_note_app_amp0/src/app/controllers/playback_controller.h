@@ -11,6 +11,7 @@
 // プロジェクトライブラリ
 #include "audio_bpp_pool.h"
 #include "audio_formatter_tx.h"
+#include "ddr_audio_buffer.h"
 #include "ipc_msg.h"
 #include "sd_bpp_feeder.h"
 #include "wav_reader.h"
@@ -24,6 +25,15 @@ namespace app {
 class PlaybackController final
 {
 public:
+    /**
+     * @brief 再生データの入力ソース
+     */
+    enum class SourceMode : uint8_t
+    {
+        kSd = 0,
+        kDdr,
+    };
+
     enum class State : uint8_t
     {
         kIdle = 0,
@@ -55,13 +65,18 @@ public:
         kInvalidParam       = -1,
         kFeederInitFailed   = -2,
         kInvalidBytesPerSec = -3,
+        kDdrBufferNotBound  = -4,
+        kDdrNoData          = -5,
     };
 
     void Bind(module::AudioFormatterTx &tx, module::AudioBppPool &tx_pool);
+    void BindDdrBuffer(module::DdrAudioBuffer &ddr_buf) { ddr_buf_ = &ddr_buf; }
+    void SetSourceMode(SourceMode mode) { source_mode_ = mode; }
     void Reset();
     bool Start(const char *wav_path);
     void Process();
     bool IsActive() const { return state_ != State::kIdle; }
+
     bool PopEvent(EventInfo *event);
     bool GetStatus(core::ipc::PlaybackStatusPayload *status) const;
     void RequestPause() { pause_req_ = true; };
@@ -78,7 +93,9 @@ private:
 
     module::AudioFormatterTx *tx_{nullptr};
     module::AudioBppPool     *tx_pool_{nullptr};
+    module::DdrAudioBuffer   *ddr_buf_{nullptr};
     module::SdBppFeeder       feeder_;
+    SourceMode                source_mode_{SourceMode::kSd};
 
     State     state_{State::kIdle};  // 状態管理
     EventInfo event_{};              // イベント管理

@@ -46,8 +46,10 @@ void RecordController::Reset()
 
     recorder_.Deinit();
 
-    rx_drop_count_ = 0;
-    drop_pending_  = false;
+    rx_drop_count_     = 0;
+    drop_pending_      = false;
+    ddr_write_error_   = false;
+    no_progress_ticks_ = 0;
 
     event_pending_ = false;
     event_         = {};
@@ -72,12 +74,21 @@ bool RecordController::Start(const char *wav_path, uint32_t sample_rate_hz, uint
         Reset();
     }
 
+    const bool use_sd = (output_mode_ == OutputMode::kSd);
+
     // 最低限の入力チェック
-    if (!rx_ || !rx_pool_ || !wav_path || sample_rate_hz == 0 || ch == 0 || bits == 0 || (bits % 8u) != 0u) {
+    if (!rx_ || !rx_pool_ || sample_rate_hz == 0 || ch == 0 || bits == 0 || (bits % 8u) != 0u ||
+        (use_sd && (!wav_path || wav_path[0] == '\0'))) {
         // エラーは分けた方がいいがめんどくさいので一括で
         LOGE("Invalid parameters: rx=%p, rx_pool=%p, wav_path=%p, sr=%u, bits=%u, ch=%u", rx_, rx_pool_, wav_path,
              (unsigned)sample_rate_hz, (unsigned)bits, (unsigned)ch);
         Notify(Event::kError, static_cast<int32_t>(Error::kInvalidParam));
+        state_ = State::kError;
+        return false;
+    }
+    if (!use_sd && !ddr_buf_) {
+        LOGE("DdrAudioBuffer is not bound");
+        Notify(Event::kError, static_cast<int32_t>(Error::kDdrBufferNotBound));
         state_ = State::kError;
         return false;
     }
@@ -88,8 +99,10 @@ bool RecordController::Start(const char *wav_path, uint32_t sample_rate_hz, uint
         return false;
     }
 
-    rx_drop_count_ = 0;
-    drop_pending_  = false;
+    rx_drop_count_     = 0;
+    drop_pending_      = false;
+    ddr_write_error_   = false;
+    no_progress_ticks_ = 0;
 
     // 領域0クリア
     const uintptr_t pool_base  = rx_->GetBufBase();
@@ -100,18 +113,35 @@ bool RecordController::Start(const char *wav_path, uint32_t sample_rate_hz, uint
 
     rx_->SetBufferBase(rx_ring_base_);
 
-    if (!recorder_.Init(wav_path, sample_rate_hz, bits, ch)) {
-        LOGE("recorder_.Init failed");
-        Reset();
+    if (use_sd) {
+        if (!recorder_.Init(wav_path, sample_rate_hz, bits, ch)) {
+            LOGE("recorder_.Init failed");
+            Reset();
 
-        Notify(Event::kError, static_cast<int32_t>(Error::kRecorderInitFailed));
-        state_ = State::kError;
-        return false;
+            Notify(Event::kError, static_cast<int32_t>(Error::kRecorderInitFailed));
+            state_ = State::kError;
+            return false;
+        }
+    } else {
+        ddr_buf_->ResetForRecord();
     }
 
     // 容量/時間計算
     bytes_per_sec_ = static_cast<uint32_t>((uint64_t)sample_rate_hz * ch * (bits / 8));
     target_bytes_  = bytes_per_sec_ * kMaxRecordSeconds;
+    if (!use_sd) {
+        const uint32_t cap = ddr_buf_->GetCapacityBytes();
+        if (cap == 0u) {
+            LOGE("DdrAudioBuffer capacity is zero");
+            Reset();
+            Notify(Event::kError, static_cast<int32_t>(Error::kInvalidParam));
+            state_ = State::kError;
+            return false;
+        }
+        target_bytes_ = std::min<uint32_t>(target_bytes_, cap);
+        LOGI("REC DDR mode: cap=%u target=%u bytes_per_sec=%u", (unsigned)cap, (unsigned)target_bytes_,
+             (unsigned)bytes_per_sec_);
+    }
     written_bytes_ = 0;
 
     // AF（S2MM）制御開始
@@ -263,13 +293,25 @@ void RecordController::ExecuteRunning()
         uint32_t wrote = 0;
 
         for (;;) {
-            if (!recorder_.ConsumeOneBpp(rx_pool_)) {
-                break;
+            uint32_t wrote_bytes = 0;
+            if (output_mode_ == OutputMode::kSd) {
+                if (!ConsumeOneBppToSd(&wrote_bytes)) {
+                    break;
+                }
+            } else {
+                if (!ConsumeOneBppToDdr(&wrote_bytes)) {
+                    if (ddr_write_error_) {
+                        Notify(Event::kError, static_cast<int32_t>(Error::kDdrWriteFailed));
+                        SetNextState(State::kStopping);
+                        return;
+                    }
+                    break;
+                }
             }
 
             ++wrote;
 
-            written_bytes_ += kBytesPerPeriod;
+            written_bytes_ += wrote_bytes;
 
             if (written_bytes_ >= target_bytes_) {
                 LOGD("Target bytes reached: %u/%u", written_bytes_, target_bytes_);
@@ -279,6 +321,22 @@ void RecordController::ExecuteRunning()
 
             if (wrote >= kPeriodsPerChunk) {
                 break;
+            }
+        }
+
+        if (output_mode_ == OutputMode::kDdr) {
+            if (wrote == 0u) {
+                ++no_progress_ticks_;
+                if (no_progress_ticks_ == 32u || (no_progress_ticks_ % 128u) == 0u) {
+                    LOGW("REC DDR no progress: ticks=%u written=%u target=%u buffered=%d", (unsigned)no_progress_ticks_,
+                         (unsigned)written_bytes_, (unsigned)target_bytes_, (int)rx_pool_->GetBufferedCount());
+                }
+            } else {
+                no_progress_ticks_ = 0;
+                if (((written_bytes_ / kBytesPerPeriod) % 64u) == 0u) {
+                    LOGD("REC DDR progress: written=%u/%u buffered=%d", (unsigned)written_bytes_,
+                         (unsigned)target_bytes_, (int)rx_pool_->GetBufferedCount());
+                }
             }
         }
     }
@@ -293,12 +351,17 @@ void RecordController::ExecuteRunning()
  */
 void RecordController::ExecuteStopping()
 {
-    LOGD("ExecuteStopping called");
+    LOGI("ExecuteStopping called: mode=%s written=%u target=%u", (output_mode_ == OutputMode::kDdr) ? "DDR" : "SD",
+         (unsigned)written_bytes_, (unsigned)target_bytes_);
     if (rx_) {
         rx_->Stop();
     }
 
-    recorder_.Deinit();
+    if (output_mode_ == OutputMode::kSd) {
+        recorder_.Deinit();
+    } else if (ddr_buf_) {
+        ddr_buf_->FinalizeRecord();
+    }
 
     if (rx_drop_count_ != 0) {
         LOGE("RX drop detected : drop_count=%u", (unsigned)rx_drop_count_);
@@ -308,10 +371,71 @@ void RecordController::ExecuteStopping()
     written_bytes_ = 0;
     target_bytes_  = 0;
 
-    drop_pending_ = false;
+    drop_pending_      = false;
+    ddr_write_error_   = false;
+    no_progress_ticks_ = 0;
 
     SetNextState(State::kIdle);
     Notify(Event::kStopped, static_cast<int32_t>(Error::kNone));
+}
+
+/**
+ * @brief プールから1BPP取り出してSDへ書き出す
+ *
+ * @param[out] out_bytes 実際に書き込んだバイト数
+ * @retval true  1BPP消費成功
+ * @retval false データ未到着、またはSD書き出し失敗
+ */
+bool RecordController::ConsumeOneBppToSd(uint32_t *out_bytes)
+{
+    if (!out_bytes || !rx_pool_) {
+        return false;
+    }
+
+    if (!recorder_.ConsumeOneBpp(rx_pool_)) {
+        return false;
+    }
+
+    *out_bytes = kBytesPerPeriod;
+    return true;
+}
+
+/**
+ * @brief プールから1BPP取り出してDDRバッファへ書き出す
+ *
+ * @param[out] out_bytes 実際に追記したバイト数
+ * @retval true  1BPP消費成功
+ * @retval false データ未到着、またはDDR追記失敗
+ */
+bool RecordController::ConsumeOneBppToDdr(uint32_t *out_bytes)
+{
+    if (!out_bytes || !ddr_buf_ || !rx_pool_) {
+        return false;
+    }
+
+    module::AudioBppPool::Bpp bpp{};
+    if (!rx_pool_->AcquireForRx(&bpp)) {
+        return false;
+    }
+
+    const uint32_t bytes = (bpp.valid_bytes > 0) ? static_cast<uint32_t>(bpp.valid_bytes) : 0u;
+    bool           ok    = true;
+    if (bytes > 0u) {
+        ok = ddr_buf_->Append(bpp.addr, bytes);
+    }
+
+    rx_pool_->Recycle(bpp);
+
+    if (!ok) {
+        LOGE("REC DDR append failed: bytes=%u write_pos=%u cap=%u valid=%u", (unsigned)bytes,
+             (unsigned)ddr_buf_->GetWritePos(), (unsigned)ddr_buf_->GetCapacityBytes(),
+             (unsigned)ddr_buf_->GetValidBytes());
+        ddr_write_error_ = true;
+        return false;
+    }
+
+    *out_bytes = bytes;
+    return true;
 }
 
 /**

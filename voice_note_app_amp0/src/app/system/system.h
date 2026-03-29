@@ -19,6 +19,7 @@
 #include "audio_notification.h"
 #include "audio_notification_publisher.h"
 #include "audio_ui_input_handler.h"
+#include "ddr_audio_buffer.h"
 #include "fsm.h"
 #include "memory_map.h"
 #include "pipeline.h"
@@ -81,9 +82,14 @@ private:
         kRecordStartFailed   = -200,
     };
 
+    // お試し：内部固定フラグで経路を切替（IPC切替へ移行）
+    static constexpr bool kUseDdrPlayback = true;
+    static constexpr bool kUseDdrRecord   = true;
+
     uintptr_t ddr_base_addr_ = kDmaBufBasePhys;
 
     // 外部モジュール
+    module::DdrAudioBuffer ddr_audio_buf_;
     module::AudioBppPool   tx_pool_;
     module::AudioBppPool   rx_pool_;
     core0::ipc::AppServer &server_;

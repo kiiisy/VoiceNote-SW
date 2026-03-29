@@ -58,9 +58,18 @@ bool System::Init()
         LOGE("Failed to allocate memory pool on the receiving side");
         return false;
     }
+    if (!ddr_audio_buf_.Init(kAudioLinearBasePhys, kAudioLinearBytes)) {
+        LOGE("Failed to initialize DDR audio buffer");
+        return false;
+    }
 
     pb_ctrl_.Bind(*tx, tx_pool_);
     rec_ctrl_.Bind(*rx, rx_pool_);
+    pb_ctrl_.BindDdrBuffer(ddr_audio_buf_);
+    rec_ctrl_.BindDdrBuffer(ddr_audio_buf_);
+    pb_ctrl_.SetSourceMode(kUseDdrPlayback ? PlaybackController::SourceMode::kDdr
+                                           : PlaybackController::SourceMode::kSd);
+    rec_ctrl_.SetOutputMode(kUseDdrRecord ? RecordController::OutputMode::kDdr : RecordController::OutputMode::kSd);
 
     return true;
 }
@@ -79,6 +88,7 @@ void System::Deinit()
     // pools
     tx_pool_.Deinit();
     rx_pool_.Deinit();
+    ddr_audio_buf_.Deinit();
 
     notification_publisher_.Reset();
     fsm_ctx_.Reset();

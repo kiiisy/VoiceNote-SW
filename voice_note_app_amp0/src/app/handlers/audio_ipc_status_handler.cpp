@@ -31,7 +31,12 @@ void AudioIpcStatusHandler::NotifyStatus()
                 break;
 
             case AudioNotification::Type::kRecordStarted:
+                rec_stop_burst_left_ = 0;
+                SendRecordStatus();
+                break;
             case AudioNotification::Type::kRecordStopped:
+                // 停止通知は取りこぼすとUIが復帰できないため、短時間だけ再送をかける
+                rec_stop_burst_left_ = kRecordStopBurstCount;
                 SendRecordStatus();
                 break;
 
@@ -87,6 +92,16 @@ void AudioIpcStatusHandler::SendStatusRegularly()
         }
         last_rec_status_ms_ = now;
         SendRecordStatus();
+        return;
+    }
+
+    if (rec_stop_burst_left_ > 0u) {
+        const uint32_t now = GetTimeMs();
+        if ((now - last_rec_status_ms_) >= kStatusPeriodMs) {
+            last_rec_status_ms_ = now;
+            SendRecordStatus();
+            --rec_stop_burst_left_;
+        }
     }
 }
 

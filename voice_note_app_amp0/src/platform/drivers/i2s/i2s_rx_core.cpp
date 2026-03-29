@@ -80,8 +80,8 @@ XStatus I2sRx::Init(const Config &cfg)
 
     // IRQ配線
     auto &gic = GicCore::GetInstance();
-    status = gic.Attach(cfg_.irq_id, (Xil_InterruptHandler)XI2s_Rx_IntrHandler, (void *)&i2s_, GicCore::GicPriority::Normal,
-                        GicCore::GicTrigger::Rising);
+    status    = gic.Attach(cfg_.irq_id, (Xil_InterruptHandler)XI2s_Rx_IntrHandler, (void *)&i2s_,
+                           GicCore::GicPriority::Normal, GicCore::GicTrigger::Rising);
     if (status != XST_SUCCESS) {
         LOGE("I2s Rx IRQ Attach Failed");
         return status;
@@ -134,6 +134,7 @@ XStatus I2sRx::Enable()
         LOGW("I2s Rx Not Started");
         return XST_FAILURE;
     }
+
     regs2_.MUX_CONTROL_REG().Write(0x00);
     regs_.CONTROL_REG().SetBits(i2stx::CTRL_EN_MASK);
 

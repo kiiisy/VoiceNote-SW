@@ -88,6 +88,7 @@ set(USER_COMPILE_SOURCES
 "modules/audio/io/sd_bpp_recorder.cpp"
 "modules/audio/io/wav_reader.cpp"
 "modules/audio/io/wav_writer.cpp"
+"modules/audio/io/ddr_audio_buffer.cpp"
 "ipc/amp/amp_hw.cpp"
 "ipc/shared/mailbox.cpp"
 "ipc/server/app_server.cpp"

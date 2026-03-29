@@ -10,6 +10,7 @@
 #include "app_client.h"
 #include "app_event_bus.h"
 #include "ipc_msg.h"
+#include "logger_core.h"
 #include "lvgl_controller.h"
 
 namespace core1 {
@@ -36,7 +37,7 @@ void IpcStatusHandler::BindIpcCallbacks()
     }
 
     auto prev_on_ack = ipc_->on_ack;
-    ipc_->on_ack = [this, prev_on_ack](core::ipc::CmdId cmd, uint32_t seq, core::ipc::AckStatus st, int32_t rc) {
+    ipc_->on_ack     = [this, prev_on_ack](core::ipc::CmdId cmd, uint32_t seq, core::ipc::AckStatus st, int32_t rc) {
         if (prev_on_ack) {
             prev_on_ack(cmd, seq, st, rc);
         }

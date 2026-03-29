@@ -11,6 +11,7 @@
 // プロジェクトライブラリ
 #include "audio_bpp_pool.h"
 #include "audio_formatter_rx.h"
+#include "ddr_audio_buffer.h"
 #include "ipc_msg.h"
 #include "sd_bpp_recorder.h"
 #include "wav_writer.h"
@@ -24,6 +25,15 @@ namespace app {
 class RecordController final
 {
 public:
+    /**
+     * @brief 録音データの出力先モード
+     */
+    enum class OutputMode : uint8_t
+    {
+        kSd = 0,
+        kDdr,
+    };
+
     enum class State : uint8_t
     {
         kIdle = 0,
@@ -51,10 +61,14 @@ public:
         kNone               = 0,
         kInvalidParam       = -1,
         kRecorderInitFailed = -2,
+        kDdrBufferNotBound  = -3,
+        kDdrWriteFailed     = -4,
         kRxDrop             = -10,
     };
 
     void Bind(module::AudioFormatterRx &rx, module::AudioBppPool &rx_pool);
+    void BindDdrBuffer(module::DdrAudioBuffer &ddr_buf) { ddr_buf_ = &ddr_buf; }
+    void SetOutputMode(OutputMode mode) { output_mode_ = mode; }
     void Reset();
     bool Start(const char *wav_path, uint32_t sample_rate_hz, uint16_t bits, uint16_t ch);
     void Process();
@@ -68,6 +82,8 @@ private:
     void     Notify(Event type, int32_t err);
     void     ExecuteRunning();
     void     ExecuteStopping();
+    bool     ConsumeOneBppToSd(uint32_t *out_bytes);
+    bool     ConsumeOneBppToDdr(uint32_t *out_bytes);
     uint32_t CopySideBufferToPool(module::AudioFormatterRx::BufferSide which);
 
     // 停止要求が来なければこの秒数で自動停止する
@@ -75,7 +91,9 @@ private:
 
     module::AudioFormatterRx *rx_{nullptr};
     module::AudioBppPool     *rx_pool_{nullptr};
+    module::DdrAudioBuffer   *ddr_buf_{nullptr};
     module::SdBppRecorder     recorder_;
+    OutputMode                output_mode_{OutputMode::kSd};
 
     State     state_{State::kIdle};  // 状態管理
     EventInfo event_{};              // イベント管理
@@ -90,6 +108,8 @@ private:
 
     uint32_t rx_drop_count_{0};
     bool     drop_pending_{false};  // 直近tickでドロップが起きた
+    bool     ddr_write_error_{false};
+    uint32_t no_progress_ticks_{0};
 
     uint32_t bytes_per_sec_{0};
 };
